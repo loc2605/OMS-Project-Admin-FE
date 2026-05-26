@@ -72,7 +72,7 @@ const Table = ({ columns, data, isLoading }) => {
             ) : table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                  No data available
+                  Không có dữ liệu hiển thị
                 </td>
               </tr>
             ) : (
@@ -98,7 +98,7 @@ const Table = ({ columns, data, isLoading }) => {
       {/* Pagination */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem' }}>
         <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-          Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} of {table.getFilteredRowModel().rows.length}
+          Hiển thị {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} đến {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} trên tổng số {table.getFilteredRowModel().rows.length} bản ghi
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <Button

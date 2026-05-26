@@ -16,7 +16,7 @@ const Button = ({
     justifyContent: 'center',
     gap: '0.5rem',
     fontWeight: '700',
-    borderRadius: 'var(--radius-lg)',
+    borderRadius: '9999px',
     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
     cursor: 'pointer',
     border: 'none',
@@ -57,6 +57,7 @@ const Button = ({
 
   return (
     <motion.button
+      {...props}
       whileHover={{ ...hoverEffect, scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       style={{
@@ -67,7 +68,6 @@ const Button = ({
       }}
       className={className}
       disabled={isLoading || props.disabled}
-      {...props}
     >
       {isLoading ? (
         <span className="loader" style={{ width: '18px', height: '18px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />

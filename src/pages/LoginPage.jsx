@@ -9,8 +9,8 @@ import Input from '../components/common/Input';
 import { Mail, Lock, LogIn } from 'lucide-react';
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('Địa chỉ Email không hợp lệ'),
+  password: z.string().min(6, 'Mật khẩu phải chứa ít nhất 6 ký tự'),
 });
 
 const LoginPage = () => {
@@ -21,14 +21,14 @@ const LoginPage = () => {
 
   const onSubmit = async (data) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Giả lập kết nối API đăng nhập
+      await new Promise(resolve => setTimeout(resolve, 1200));
       
       localStorage.setItem('admin_token', 'mock_token_123');
-      toast.success('Login successful!');
+      toast.success('Đăng nhập thành công!');
       navigate('/');
     } catch (error) {
-      toast.error('Login failed. Please check your credentials.');
+      toast.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
     }
   };
 
@@ -68,18 +68,18 @@ const LoginPage = () => {
         </div>
         
         <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '0.5rem', color: 'white' }}>OMS Admin</h1>
-        <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '2rem' }}>Welcome back to the management system</p>
-
+        <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '2rem' }}>Chào mừng bạn quay lại hệ thống quản lý</p>
+ 
         <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'left' }}>
           <Input 
-            label="Email" 
+            label="Địa chỉ Email" 
             placeholder="admin@oms.com" 
             icon={Mail} 
             {...register('email')}
             error={errors.email?.message}
           />
           <Input 
-            label="Password" 
+            label="Mật khẩu" 
             type="password" 
             placeholder="••••••••" 
             icon={Lock} 
@@ -88,7 +88,7 @@ const LoginPage = () => {
           />
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <a href="#" style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: '600' }}>Forgot password?</a>
+            <a href="#" style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: '600' }}>Quên mật khẩu?</a>
           </div>
 
           <Button 
@@ -100,13 +100,13 @@ const LoginPage = () => {
               padding: '1rem',
               fontSize: '1.1rem',
               fontWeight: '800',
-              borderRadius: 'var(--radius-xl)',
+              borderRadius: '9999px',
               backgroundColor: '#f26c0d', // Explicit brand orange
               color: '#ffffff',
               boxShadow: '0 10px 25px -5px rgba(242, 108, 13, 0.4)'
             }}
           >
-            SIGN IN
+            ĐĂNG NHẬP
           </Button>
         </form>
       </div>

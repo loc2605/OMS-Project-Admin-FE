@@ -33,6 +33,15 @@ const productService = {
   getInventory: async (productId) => {
     const response = await apiClient.get(`/api/v1/inventory/product/${productId}`);
     return response.data;
+  },
+
+  updateInventory: async (productId, quantity, type) => {
+    const response = await apiClient.post('/api/v1/inventory/update', {
+      productId,
+      quantity: Number(quantity),
+      type // "ADD", "REDUCE", "RESERVE", "RELEASE"
+    });
+    return response.data;
   }
 };
 

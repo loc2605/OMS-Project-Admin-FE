@@ -5,6 +5,7 @@ import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/Dashboard';
 import ProductList from './pages/Products/ProductList';
 import OrderList from './pages/Orders/OrderList';
+import UserList from './pages/Users/UserList';
 import LoginPage from './pages/LoginPage';
 
 // Mock Protected Route
@@ -32,7 +33,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="orders" element={<OrderList />} />
           <Route path="products" element={<ProductList />} />
-          <Route path="users" element={<div style={{ padding: '2rem' }}>Users Page (Coming Soon)</div>} />
+          <Route path="users" element={<UserList />} />
           <Route path="settings" element={<div style={{ padding: '2rem' }}>Settings Page (Coming Soon)</div>} />
         </Route>
         

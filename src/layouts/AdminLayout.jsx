@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
-import Navbar from '../components/layout/Navbar';
 
 const AdminLayout = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [theme, setTheme] = useState('light');
-  const location = useLocation();
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
   const toggleTheme = () => {
@@ -15,16 +13,14 @@ const AdminLayout = () => {
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
-  const getPageTitle = () => {
-    const path = location.pathname;
-    if (path === '/') return 'Dashboard';
-    const title = path.split('/')[1];
-    return title.charAt(0).toUpperCase() + title.slice(1);
-  };
-
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)', transition: 'background-color 0.3s ease' }}>
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        toggleSidebar={toggleSidebar} 
+        theme={theme}
+        toggleTheme={toggleTheme}
+      />
       
       <div style={{ 
         flex: 1, 
@@ -33,18 +29,12 @@ const AdminLayout = () => {
         maxWidth: isSidebarOpen ? 'calc(100vw - 280px)' : 'calc(100vw - 88px)',
         transition: 'all 0.3s ease'
       }}>
-        <Navbar 
-          activePage={getPageTitle()} 
-          theme={theme} 
-          toggleTheme={toggleTheme} 
-        />
-        
         <main style={{ 
           flex: 1, 
-          padding: '1.25rem', 
+          padding: '1.5rem 2rem', // Generous spacing for premium styling
           overflowY: 'auto',
           background: 'var(--bg-main)',
-          height: 'calc(100vh - 64px)'
+          height: '100vh'
         }}>
           <div className="animate-fade-in" style={{ maxWidth: '1600px', margin: '0 auto', height: '100%' }}>
             <Outlet />

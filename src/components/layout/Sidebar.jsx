@@ -9,16 +9,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Package,
-  LogOut
+  LogOut,
+  Sun,
+  Moon,
+  Bell
 } from 'lucide-react';
 
-const Sidebar = ({ isOpen, toggleSidebar }) => {
+const Sidebar = ({ isOpen, toggleSidebar, theme, toggleTheme }) => {
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: ShoppingBag, label: 'Orders', path: '/orders' },
-    { icon: Package, label: 'Products', path: '/products' },
-    { icon: Users, label: 'Customers', path: '/users' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: LayoutDashboard, label: 'Tổng quan', path: '/' },
+    { icon: ShoppingBag, label: 'Đơn hàng', path: '/orders' },
+    { icon: Package, label: 'Sản phẩm', path: '/products' },
+    { icon: Users, label: 'Khách hàng', path: '/users' },
+    { icon: Settings, label: 'Cài đặt', path: '/settings' },
   ];
 
   const handleLogout = () => {
@@ -35,7 +38,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         display: 'flex',
         flexDirection: 'column',
         padding: '1.5rem 1rem',
-        position: 'relative',
+        position: 'sticky',
+        top: 0,
         zIndex: 100,
         backgroundColor: 'var(--bg-sidebar)',
         borderRight: '1px solid var(--border-color)',
@@ -47,38 +51,120 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         display: 'flex',
         alignItems: 'center',
         gap: '0.75rem',
-        marginBottom: '2.5rem',
-        paddingLeft: '0.75rem',
+        marginBottom: '1.5rem', // Reduced to make space for the top controls
+        paddingLeft: '0.5rem',
+        height: '40px',
         overflow: 'hidden'
       }}>
         <div style={{
-          minWidth: '32px',
-          height: '32px',
-          color: 'var(--primary)',
+          width: '36px',
+          height: '36px',
+          background: 'var(--primary)',
+          borderRadius: '10px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          color: 'white',
+          boxShadow: '0 8px 16px var(--primary-glow)',
+          flexShrink: 0
         }}>
-          <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-            <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"></path>
-          </svg>
+          <ShoppingBag size={20} />
         </div>
         {isOpen && (
-          <motion.h2
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            style={{ fontSize: '1.25rem', fontWeight: '800', whiteSpace: 'nowrap', color: 'var(--text-main)' }}
-          >
-            Shop<span style={{ color: 'var(--primary)' }}>Modern</span>
-          </motion.h2>
+          <span style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '900', 
+            color: 'var(--text-main)', 
+            letterSpacing: '-0.025em',
+            whiteSpace: 'nowrap'
+          }}>
+            ShopModern
+          </span>
         )}
       </div>
 
-      {/* Navigation */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
+      {/* Top Utility Row (Light/Dark Mode and Notifications) */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '0.75rem', 
+        justifyContent: isOpen ? 'flex-start' : 'center',
+        padding: '0 0.5rem',
+        marginBottom: '2rem', // Spacing before navigation links
+        borderBottom: '1px solid var(--border-color)',
+        paddingBottom: '1rem' // Subtle divider line to look premium
+      }}>
+        {/* Dark/Light mode Toggle */}
+        <button 
+          onClick={toggleTheme}
+          style={{ 
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%', 
+            color: 'var(--text-muted)',
+            border: '1px solid var(--border-color)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--bg-card)',
+            cursor: 'pointer',
+            transition: 'var(--transition)',
+            flexShrink: 0
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'var(--primary)';
+            e.currentTarget.style.color = 'var(--primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'var(--border-color)';
+            e.currentTarget.style.color = 'var(--text-muted)';
+          }}
+        >
+          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+
+        {/* Notifications */}
+        <div style={{ position: 'relative', cursor: 'pointer', flexShrink: 0 }}>
+          <div style={{ 
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%', 
+            color: 'var(--text-muted)',
+            border: '1px solid var(--border-color)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--bg-card)',
+            transition: 'var(--transition)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'var(--primary)';
+            e.currentTarget.style.color = 'var(--primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'var(--border-color)';
+            e.currentTarget.style.color = 'var(--text-muted)';
+          }}
+          >
+            <Bell size={18} />
+          </div>
+          <div style={{ 
+            position: 'absolute', 
+            top: '8px', 
+            right: '8px', 
+            width: '6px', 
+            height: '6px', 
+            background: 'var(--primary)', 
+            borderRadius: '50%',
+            border: '1.5px solid var(--bg-sidebar)'
+          }} />
+        </div>
+      </div>
+
+      {/* Navigation Menu */}
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
         {menuItems.map((item) => (
           <NavLink
-            key={item.label}
+            key={item.path}
             to={item.path}
             style={({ isActive }) => ({
               display: 'flex',
@@ -87,22 +173,38 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               padding: '0.875rem 1rem',
               borderRadius: 'var(--radius-lg)',
               color: isActive ? 'white' : 'var(--text-muted)',
-              backgroundColor: isActive ? 'var(--primary)' : 'transparent',
-              textDecoration: 'none',
+              background: isActive ? 'var(--primary)' : 'transparent',
+              boxShadow: isActive ? '0 8px 20px -6px var(--primary-glow)' : 'none',
               fontWeight: isActive ? '700' : '600',
+              textDecoration: 'none',
               transition: 'var(--transition)',
-              boxShadow: isActive ? '0 10px 15px -3px var(--primary-glow)' : 'none',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              whiteSpace: 'nowrap'
             })}
+            onMouseEnter={(e) => {
+              const isActive = e.currentTarget.classList.contains('active');
+              if (!isActive) {
+                e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.02)';
+                e.currentTarget.style.color = 'var(--text-main)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              const isActive = e.currentTarget.classList.contains('active');
+              if (!isActive) {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'var(--text-muted)';
+              }
+            }}
           >
             {({ isActive }) => (
               <>
-                <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                <item.icon size={22} style={{ flexShrink: 0 }} />
                 {isOpen && (
                   <motion.span
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    style={{ whiteSpace: 'nowrap', fontSize: '1rem' }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.2 }}
                   >
                     {item.label}
                   </motion.span>
@@ -115,6 +217,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
       {/* Bottom Actions */}
       <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Logout Button */}
         <button
           onClick={handleLogout}
           style={{
@@ -140,8 +243,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             e.currentTarget.style.color = 'var(--text-muted)';
           }}
         >
-          <LogOut size={22} />
-          {isOpen && <span>Logout</span>}
+          <LogOut size={22} style={{ flexShrink: 0 }} />
+          {isOpen && <span>Đăng xuất</span>}
         </button>
       </div>
 

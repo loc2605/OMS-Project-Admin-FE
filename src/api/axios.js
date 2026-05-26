@@ -8,13 +8,15 @@ const apiClient = axios.create({
   },
 });
 
-// Request Interceptor
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('admin_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Set Gateway security mock headers for developer/admin mode
+    config.headers['X-Account-Id'] = 'admin-account-id';
+    config.headers['X-User-Role'] = 'ADMIN';
     return config;
   },
   (error) => {
