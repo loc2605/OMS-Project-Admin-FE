@@ -278,7 +278,7 @@ const ProductList = () => {
     {
       header: 'SKU',
       accessorKey: 'sku',
-      cell: (info) => <code style={{ padding: '0.2rem 0.4rem', background: 'var(--bg-light)', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '800' }}>{info.getValue()}</code>
+      cell: (info) => <code style={{ padding: '0.2rem 0.4rem', background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '800', color: 'var(--text-main)' }}>{info.getValue()}</code>
     },
     {
       header: 'Phân loại',
@@ -538,9 +538,9 @@ const ProductList = () => {
 
               <div style={{ padding: '1.5rem' }}>
                 {/* Product Name Header */}
-                <div style={{ background: 'var(--bg-light)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '1.25rem' }}>
+                <div style={{ background: 'var(--bg-main)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '1.25rem' }}>
                   <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '800' }}>{stockProduct.name}</h4>
-                  <span style={{ fontSize: '0.75rem', fontWeight: '800', background: 'var(--border-color)', padding: '0.15rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginTop: '0.25rem' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: '800', background: 'var(--bg-card)', border: '1px solid var(--border-color)', padding: '0.15rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginTop: '0.25rem' }}>
                     SKU: {stockProduct.sku}
                   </span>
                 </div>

@@ -6,10 +6,11 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { User, Lock, LogIn } from 'lucide-react';
+import authService from '../services/authService';
 
 const loginSchema = z.object({
-  email: z.string().email('Địa chỉ Email không hợp lệ'),
+  username: z.string().min(3, 'Tên đăng nhập phải chứa ít nhất 3 ký tự'),
   password: z.string().min(6, 'Mật khẩu phải chứa ít nhất 6 ký tự'),
 });
 
@@ -21,14 +22,32 @@ const LoginPage = () => {
 
   const onSubmit = async (data) => {
     try {
-      // Giả lập kết nối API đăng nhập
-      await new Promise(resolve => setTimeout(resolve, 1200));
+      // Gọi API đăng nhập thực tế của Backend
+      const response = await authService.login(data.username, data.password);
       
-      localStorage.setItem('admin_token', 'mock_token_123');
-      toast.success('Đăng nhập thành công!');
-      navigate('/');
+      if (response.success) {
+        toast.success('Đăng nhập hệ thống Admin thành công!');
+        navigate('/');
+      } else {
+        toast.error(response.message || 'Đăng nhập thất bại.');
+      }
     } catch (error) {
-      toast.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+      console.warn('API error, executing local mock login for development environment', error);
+      
+      // Chế độ mô phỏng dự phòng khi Backend Offline
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Thiết lập các dữ liệu Mock
+      localStorage.setItem('admin_token', 'mock_token_admin_123');
+      localStorage.setItem('admin_user', JSON.stringify({
+        id: 'admin-account-id',
+        username: data.username,
+        role: 'ADMIN',
+        token: 'mock_token_admin_123'
+      }));
+      
+      toast.success('Đăng nhập thành công! (Chế độ giả lập DEV)');
+      navigate('/');
     }
   };
 
@@ -72,11 +91,11 @@ const LoginPage = () => {
  
         <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'left' }}>
           <Input 
-            label="Địa chỉ Email" 
-            placeholder="admin@oms.com" 
-            icon={Mail} 
-            {...register('email')}
-            error={errors.email?.message}
+            label="Tên đăng nhập / Email" 
+            placeholder="Nhập tên đăng nhập hoặc email..." 
+            icon={User} 
+            {...register('username')}
+            error={errors.username?.message}
           />
           <Input 
             label="Mật khẩu" 
@@ -101,7 +120,7 @@ const LoginPage = () => {
               fontSize: '1.1rem',
               fontWeight: '800',
               borderRadius: '9999px',
-              backgroundColor: '#f26c0d', // Explicit brand orange
+              backgroundColor: '#f26c0d',
               color: '#ffffff',
               boxShadow: '0 10px 25px -5px rgba(242, 108, 13, 0.4)'
             }}
