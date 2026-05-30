@@ -537,7 +537,7 @@ const Orders = () => {
         <div style={{ flex: 1, minWidth: '200px' }}>
           <Input
             label="Tìm theo Mã Đơn"
-            placeholder="Nhập mã đơn ..."
+            placeholder="Nhập mã đơn..."
             icon={Search}
             value={searchId}
             onChange={(e) => setSearchId(e.target.value)}
