@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   DollarSign, 
   Users, 
@@ -934,103 +935,106 @@ const Dashboard = () => {
       </div>
 
       {/* Restock Inventory Modal Form */}
-      <AnimatePresence>
-        {restockItem && (
-          <div style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem'
-          }}>
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              style={{
-                background: 'var(--bg-card)',
-                width: '100%',
-                maxWidth: '460px',
-                borderRadius: 'var(--radius-xl)',
-                border: '1px solid var(--border-color)',
-                boxShadow: 'var(--shadow-xl)',
-                overflow: 'hidden'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                <h3 style={{ margin: 0, fontSize: '1.15rem' }}>Cập nhật kho hàng nhanh</h3>
-                <button onClick={() => setRestockItem(null)} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
-                  <X size={20} />
-                </button>
-              </div>
-
-              <form onSubmit={handleRestockSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ background: 'var(--bg-light)', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                  <p style={{ fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', margin: '0 0 0.2rem 0' }}>Sản phẩm</p>
-                  <p style={{ fontWeight: '800', margin: 0, fontSize: '0.95rem' }}>{restockItem.product?.name}</p>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>SKU: {restockItem.product?.sku} | Tồn kho hiện tại: {restockItem.availableQuantity}</p>
+      {createPortal(
+        <AnimatePresence>
+          {restockItem && (
+            <div style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+              padding: '1rem'
+            }}>
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                style={{
+                  background: 'var(--bg-card)',
+                  width: '100%',
+                  maxWidth: '460px',
+                  borderRadius: 'var(--radius-xl)',
+                  border: '1px solid var(--border-color)',
+                  boxShadow: 'var(--shadow-xl)',
+                  overflow: 'hidden'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem' }}>Cập nhật kho hàng nhanh</h3>
+                  <button onClick={() => setRestockItem(null)} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    <X size={20} />
+                  </button>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <label style={{ fontSize: '0.875rem', fontWeight: '700' }}>Loại điều chỉnh</label>
-                  <select 
-                    value={restockType} 
-                    onChange={(e) => setRestockType(e.target.value)}
-                    style={{
-                      padding: '0.875rem 1rem',
-                      borderRadius: 'var(--radius-lg)',
-                      border: '1px solid var(--border-color)',
-                      backgroundColor: 'var(--bg-card)',
-                      color: 'var(--text-main)',
-                      outline: 'none',
-                      fontSize: '0.95rem',
-                      fontWeight: '600'
-                    }}
-                  >
-                    <option value="ADD">ADD (Nhập kho thêm)</option>
-                    <option value="REDUCE">REDUCE (Xuất giảm tồn kho)</option>
-                    <option value="RESERVE">RESERVE (Tạm giữ kho hàng)</option>
-                    <option value="RELEASE">RELEASE (Hoàn kho giữ hàng)</option>
-                  </select>
-                </div>
+                <form onSubmit={handleRestockSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div style={{ background: 'var(--bg-light)', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <p style={{ fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', margin: '0 0 0.2rem 0' }}>Sản phẩm</p>
+                    <p style={{ fontWeight: '800', margin: 0, fontSize: '0.95rem' }}>{restockItem.product?.name}</p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>SKU: {restockItem.product?.sku} | Tồn kho hiện tại: {restockItem.availableQuantity}</p>
+                  </div>
 
-                <Input 
-                  label="Số lượng"
-                  type="number"
-                  min="1"
-                  value={restockQuantity}
-                  onChange={(e) => setRestockQuantity(e.target.value)}
-                  required
-                />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: '700' }}>Loại điều chỉnh</label>
+                    <select 
+                      value={restockType} 
+                      onChange={(e) => setRestockType(e.target.value)}
+                      style={{
+                        padding: '0.875rem 1rem',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '1px solid var(--border-color)',
+                        backgroundColor: 'var(--bg-card)',
+                        color: 'var(--text-main)',
+                        outline: 'none',
+                        fontSize: '0.95rem',
+                        fontWeight: '600'
+                      }}
+                    >
+                      <option value="ADD">ADD (Nhập kho thêm)</option>
+                      <option value="REDUCE">REDUCE (Xuất giảm tồn kho)</option>
+                      <option value="RESERVE">RESERVE (Tạm giữ kho hàng)</option>
+                      <option value="RELEASE">RELEASE (Hoàn kho giữ hàng)</option>
+                    </select>
+                  </div>
 
-                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                  <Button 
-                    type="button" 
-                    variant="secondary" 
-                    onClick={() => setRestockItem(null)} 
-                    style={{ flex: 1 }}
-                  >
-                    Hủy bỏ
-                  </Button>
-                  
-                  <Button 
-                    type="submit" 
-                    variant="primary" 
-                    isLoading={submittingRestock}
-                    style={{ flex: 1 }}
-                  >
-                    Xác nhận
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                  <Input 
+                    label="Số lượng"
+                    type="number"
+                    min="1"
+                    value={restockQuantity}
+                    onChange={(e) => setRestockQuantity(e.target.value)}
+                    required
+                  />
+
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                    <Button 
+                      type="button" 
+                      variant="secondary" 
+                      onClick={() => setRestockItem(null)} 
+                      style={{ flex: 1 }}
+                    >
+                      Hủy bỏ
+                    </Button>
+                    
+                    <Button 
+                      type="submit" 
+                      variant="primary" 
+                      isLoading={submittingRestock}
+                      style={{ flex: 1 }}
+                    >
+                      Xác nhận
+                    </Button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Global CSS spinner rule helper */}
       <style dangerouslySetInnerHTML={{__html: `

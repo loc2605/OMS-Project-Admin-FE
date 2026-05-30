@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
@@ -374,275 +375,281 @@ const ProductList = () => {
       </div>
 
       {/* Add / Edit Product Modal */}
-      <AnimatePresence>
-        {isAddEditOpen && (
-          <div style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem'
-          }}>
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              style={{
-                background: 'var(--bg-card)',
-                width: '100%',
-                maxWidth: '600px',
-                borderRadius: 'var(--radius-xl)',
-                border: '1px solid var(--border-color)',
-                boxShadow: 'var(--shadow-xl)',
-                overflow: 'hidden'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                <h3 style={{ margin: 0, fontSize: '1.15rem' }}>{editingProduct ? 'Chỉnh sửa thông tin sản phẩm' : 'Thêm sản phẩm mới'}</h3>
-                <button onClick={() => setIsAddEditOpen(false)} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
-                  <X size={20} />
-                </button>
-              </div>
+      {createPortal(
+        <AnimatePresence>
+          {isAddEditOpen && (
+            <div style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+              padding: '1rem'
+            }}>
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                style={{
+                  background: 'var(--bg-card)',
+                  width: '100%',
+                  maxWidth: '600px',
+                  borderRadius: 'var(--radius-xl)',
+                  border: '1px solid var(--border-color)',
+                  boxShadow: 'var(--shadow-xl)',
+                  overflow: 'hidden'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem' }}>{editingProduct ? 'Chỉnh sửa thông tin sản phẩm' : 'Thêm sản phẩm mới'}</h3>
+                  <button onClick={() => setIsAddEditOpen(false)} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    <X size={20} />
+                  </button>
+                </div>
 
-              <form onSubmit={handleProductSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <form onSubmit={handleProductSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <Input 
+                      label="Tên sản phẩm"
+                      type="text"
+                      value={productForm.name}
+                      onChange={(e) => setProductForm({...productForm, name: e.target.value})}
+                      required
+                    />
+                    <Input 
+                      label="Mã SKU sản phẩm"
+                      type="text"
+                      placeholder="ví dụ: SKU-MEN-001"
+                      value={productForm.sku}
+                      onChange={(e) => setProductForm({...productForm, sku: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <Input 
+                      label="Giá bán (VND)"
+                      type="number"
+                      value={productForm.price}
+                      onChange={(e) => setProductForm({...productForm, price: e.target.value})}
+                      required
+                    />
+                    <Input 
+                      label="Phân nhóm ngành hàng (Category)"
+                      type="text"
+                      placeholder="ví dụ: Thời trang Nam"
+                      value={productForm.categoryName}
+                      onChange={(e) => setProductForm({...productForm, categoryName: e.target.value})}
+                      required
+                    />
+                  </div>
+
                   <Input 
-                    label="Tên sản phẩm"
+                    label="Đường dẫn ảnh sản phẩm (Image URL)"
                     type="text"
-                    value={productForm.name}
-                    onChange={(e) => setProductForm({...productForm, name: e.target.value})}
-                    required
+                    placeholder="https://example.com/images/product.png"
+                    value={productForm.imageUrl}
+                    onChange={(e) => setProductForm({...productForm, imageUrl: e.target.value})}
                   />
-                  <Input 
-                    label="Mã SKU sản phẩm"
-                    type="text"
-                    placeholder="ví dụ: SKU-MEN-001"
-                    value={productForm.sku}
-                    onChange={(e) => setProductForm({...productForm, sku: e.target.value})}
-                    required
-                  />
-                </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <Input 
-                    label="Giá bán (VND)"
-                    type="number"
-                    value={productForm.price}
-                    onChange={(e) => setProductForm({...productForm, price: e.target.value})}
-                    required
-                  />
-                  <Input 
-                    label="Phân nhóm ngành hàng (Category)"
-                    type="text"
-                    placeholder="ví dụ: Thời trang Nam"
-                    value={productForm.categoryName}
-                    onChange={(e) => setProductForm({...productForm, categoryName: e.target.value})}
-                    required
-                  />
-                </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: '700' }}>Mô tả sản phẩm</label>
+                    <textarea 
+                      value={productForm.description}
+                      onChange={(e) => setProductForm({...productForm, description: e.target.value})}
+                      rows="3"
+                      style={{
+                        width: '100%',
+                        padding: '0.875rem 1rem',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '1px solid var(--border-color)',
+                        backgroundColor: 'var(--bg-card)',
+                        color: 'var(--text-main)',
+                        outline: 'none',
+                        fontSize: '0.95rem',
+                        fontFamily: 'inherit',
+                        resize: 'vertical'
+                      }}
+                    />
+                  </div>
 
-                <Input 
-                  label="Đường dẫn ảnh sản phẩm (Image URL)"
-                  type="text"
-                  placeholder="https://example.com/images/product.png"
-                  value={productForm.imageUrl}
-                  onChange={(e) => setProductForm({...productForm, imageUrl: e.target.value})}
-                />
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <label style={{ fontSize: '0.875rem', fontWeight: '700' }}>Mô tả sản phẩm</label>
-                  <textarea 
-                    value={productForm.description}
-                    onChange={(e) => setProductForm({...productForm, description: e.target.value})}
-                    rows="3"
-                    style={{
-                      width: '100%',
-                      padding: '0.875rem 1rem',
-                      borderRadius: 'var(--radius-lg)',
-                      border: '1px solid var(--border-color)',
-                      backgroundColor: 'var(--bg-card)',
-                      color: 'var(--text-main)',
-                      outline: 'none',
-                      fontSize: '0.95rem',
-                      fontFamily: 'inherit',
-                      resize: 'vertical'
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                  <Button 
-                    type="button" 
-                    variant="secondary" 
-                    onClick={() => setIsAddEditOpen(false)} 
-                    style={{ flex: 1 }}
-                  >
-                    Hủy bỏ
-                  </Button>
-                  
-                  <Button 
-                    type="submit" 
-                    variant="primary" 
-                    style={{ flex: 1 }}
-                  >
-                    {editingProduct ? 'Cập nhật' : 'Tạo mới'}
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                    <Button 
+                      type="button" 
+                      variant="secondary" 
+                      onClick={() => setIsAddEditOpen(false)} 
+                      style={{ flex: 1 }}
+                    >
+                      Hủy bỏ
+                    </Button>
+                    
+                    <Button 
+                      type="submit" 
+                      variant="primary" 
+                      style={{ flex: 1 }}
+                    >
+                      {editingProduct ? 'Cập nhật' : 'Tạo mới'}
+                    </Button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Manage Stock & Inventory Modal */}
-      <AnimatePresence>
-        {isStockOpen && stockProduct && (
-          <div style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem'
-          }}>
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              style={{
-                background: 'var(--bg-card)',
-                width: '100%',
-                maxWidth: '500px',
-                borderRadius: 'var(--radius-xl)',
-                border: '1px solid var(--border-color)',
-                boxShadow: 'var(--shadow-xl)',
-                overflow: 'hidden'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                <h3 style={{ margin: 0, fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Boxes size={20} color="var(--primary)" />
-                  Quản lý tồn kho chi tiết
-                </h3>
-                <button onClick={() => setIsStockOpen(false)} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div style={{ padding: '1.5rem' }}>
-                {/* Product Name Header */}
-                <div style={{ background: 'var(--bg-main)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '1.25rem' }}>
-                  <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '800' }}>{stockProduct.name}</h4>
-                  <span style={{ fontSize: '0.75rem', fontWeight: '800', background: 'var(--bg-card)', border: '1px solid var(--border-color)', padding: '0.15rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginTop: '0.25rem' }}>
-                    SKU: {stockProduct.sku}
-                  </span>
+      {createPortal(
+        <AnimatePresence>
+          {isStockOpen && stockProduct && (
+            <div style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+              padding: '1rem'
+            }}>
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                style={{
+                  background: 'var(--bg-card)',
+                  width: '100%',
+                  maxWidth: '500px',
+                  borderRadius: 'var(--radius-xl)',
+                  border: '1px solid var(--border-color)',
+                  boxShadow: 'var(--shadow-xl)',
+                  overflow: 'hidden'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Boxes size={20} color="var(--primary)" />
+                    Quản lý tồn kho chi tiết
+                  </h3>
+                  <button onClick={() => setIsStockOpen(false)} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    <X size={20} />
+                  </button>
                 </div>
 
-                {loadingInventory ? (
-                  <div style={{ padding: '2rem 0', textAlign: 'center' }}>
-                    <span className="loader" style={{ width: '24px', height: '24px', border: '3px solid var(--primary-glow)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem', fontWeight: '700' }}>Đang tải trạng thái tồn kho...</p>
+                <div style={{ padding: '1.5rem' }}>
+                  {/* Product Name Header */}
+                  <div style={{ background: 'var(--bg-main)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '1.25rem' }}>
+                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '800' }}>{stockProduct.name}</h4>
+                    <span style={{ fontSize: '0.75rem', fontWeight: '800', background: 'var(--bg-card)', border: '1px solid var(--border-color)', padding: '0.15rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginTop: '0.25rem' }}>
+                      SKU: {stockProduct.sku}
+                    </span>
                   </div>
-                ) : inventoryDetails ? (
-                  <div>
-                    {/* Inventory Grid Stats */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                      <div style={{ border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                        <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '800', color: 'var(--success)' }}>{inventoryDetails.availableQuantity}</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Khả dụng (Available)</span>
-                      </div>
-                      <div style={{ border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                        <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '800', color: 'var(--warning)' }}>{inventoryDetails.reservedQuantity}</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Đang giữ (Reserved)</span>
-                      </div>
-                      <div style={{ border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                        <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '800', color: 'var(--primary)' }}>{inventoryDetails.totalQuantity}</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Tổng tồn kho (Total)</span>
-                      </div>
-                      <div style={{ border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                        <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '800', color: 'var(--error)' }}>{inventoryDetails.lowStockThreshold}</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Ngưỡng đỏ (Threshold)</span>
-                      </div>
-                    </div>
 
-                    {/* Stock operation form */}
-                    <form onSubmit={handleStockSubmit} style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <AlertCircle size={16} color="var(--primary)" />
-                        Thực hiện điều chỉnh kho
-                      </h4>
-                      
-                      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '0.75rem' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                          <label style={{ fontSize: '0.8rem', fontWeight: '700' }}>Hành động</label>
-                          <select 
-                            value={stockForm.type} 
-                            onChange={(e) => setStockForm({...stockForm, type: e.target.value})}
-                            style={{
-                              padding: '0.75rem',
-                              borderRadius: 'var(--radius-lg)',
-                              border: '1px solid var(--border-color)',
-                              backgroundColor: 'var(--bg-card)',
-                              color: 'var(--text-main)',
-                              outline: 'none',
-                              fontSize: '0.9rem',
-                              fontWeight: '600'
-                            }}
-                          >
-                            <option value="ADD">ADD (Nhập hàng thêm)</option>
-                            <option value="REDUCE">REDUCE (Xuất kho bán)</option>
-                            <option value="RESERVE">RESERVE (Giữ hàng trước)</option>
-                            <option value="RELEASE">RELEASE (Nhả hàng đã giữ)</option>
-                          </select>
+                  {loadingInventory ? (
+                    <div style={{ padding: '2rem 0', textAlign: 'center' }}>
+                      <span className="loader" style={{ width: '24px', height: '24px', border: '3px solid var(--primary-glow)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem', fontWeight: '700' }}>Đang tải trạng thái tồn kho...</p>
+                    </div>
+                  ) : inventoryDetails ? (
+                    <div>
+                      {/* Inventory Grid Stats */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                        <div style={{ border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
+                          <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '800', color: 'var(--success)' }}>{inventoryDetails.availableQuantity}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Khả dụng (Available)</span>
+                        </div>
+                        <div style={{ border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
+                          <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '800', color: 'var(--warning)' }}>{inventoryDetails.reservedQuantity}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Đang giữ (Reserved)</span>
+                        </div>
+                        <div style={{ border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
+                          <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '800', color: 'var(--primary)' }}>{inventoryDetails.totalQuantity}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Tổng tồn kho (Total)</span>
+                        </div>
+                        <div style={{ border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
+                          <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '800', color: 'var(--error)' }}>{inventoryDetails.lowStockThreshold}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Ngưỡng đỏ (Threshold)</span>
+                        </div>
+                      </div>
+
+                      {/* Stock operation form */}
+                      <form onSubmit={handleStockSubmit} style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <AlertCircle size={16} color="var(--primary)" />
+                          Thực hiện điều chỉnh kho
+                        </h4>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '0.75rem' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            <label style={{ fontSize: '0.8rem', fontWeight: '700' }}>Hành động</label>
+                            <select 
+                              value={stockForm.type} 
+                              onChange={(e) => setStockForm({...stockForm, type: e.target.value})}
+                              style={{
+                                padding: '0.75rem',
+                                borderRadius: 'var(--radius-lg)',
+                                border: '1px solid var(--border-color)',
+                                backgroundColor: 'var(--bg-card)',
+                                color: 'var(--text-main)',
+                                outline: 'none',
+                                fontSize: '0.9rem',
+                                fontWeight: '600'
+                              }}
+                            >
+                              <option value="ADD">ADD (Nhập hàng thêm)</option>
+                              <option value="REDUCE">REDUCE (Xuất kho bán)</option>
+                              <option value="RESERVE">RESERVE (Giữ hàng trước)</option>
+                              <option value="RELEASE">RELEASE (Nhả hàng đã giữ)</option>
+                            </select>
+                          </div>
+
+                          <Input 
+                            label="Số lượng"
+                            type="number"
+                            min="1"
+                            style={{ padding: '0.75rem' }}
+                            value={stockForm.quantity}
+                            onChange={(e) => setStockForm({...stockForm, quantity: e.target.value})}
+                            required
+                          />
                         </div>
 
-                        <Input 
-                          label="Số lượng"
-                          type="number"
-                          min="1"
-                          style={{ padding: '0.75rem' }}
-                          value={stockForm.quantity}
-                          onChange={(e) => setStockForm({...stockForm, quantity: e.target.value})}
-                          required
-                        />
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                        <Button 
-                          type="button" 
-                          variant="secondary" 
-                          onClick={() => setIsStockOpen(false)} 
-                          style={{ flex: 1 }}
-                        >
-                          Đóng lại
-                        </Button>
-                        
-                        <Button 
-                          type="submit" 
-                          variant="primary" 
-                          isLoading={submittingStock}
-                          style={{ flex: 1 }}
-                        >
-                          Áp dụng
-                        </Button>
-                      </div>
-                    </form>
-                  </div>
-                ) : (
-                  <p style={{ textAlign: 'center', color: 'var(--error)', fontWeight: '700' }}>Không thể lấy thông tin chi tiết tồn kho.</p>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                          <Button 
+                            type="button" 
+                            variant="secondary" 
+                            onClick={() => setIsStockOpen(false)} 
+                            style={{ flex: 1 }}
+                          >
+                            Đóng lại
+                          </Button>
+                          
+                          <Button 
+                            type="submit" 
+                            variant="primary" 
+                            isLoading={submittingStock}
+                            style={{ flex: 1 }}
+                          >
+                            Áp dụng
+                          </Button>
+                        </div>
+                      </form>
+                    </div>
+                  ) : (
+                    <p style={{ textAlign: 'center', color: 'var(--error)', fontWeight: '700' }}>Không thể lấy thông tin chi tiết tồn kho.</p>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
     </div>
   );

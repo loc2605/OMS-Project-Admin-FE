@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
-import { 
-  Download, 
-  Filter, 
-  Eye, 
-  Search, 
-  X, 
-  Truck, 
-  Clock, 
-  CheckCircle, 
+import {
+  Download,
+  Filter,
+  Eye,
+  Search,
+  X,
+  Truck,
+  Clock,
+  CheckCircle,
   AlertCircle,
   FileText,
   User,
@@ -28,12 +29,12 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalElements, setTotalElements] = useState(0);
-  
+
   // Filter & Search States
   const [searchId, setSearchId] = useState('');
   const [searchCustomer, setSearchCustomer] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  
+
   // Pagination States (Managed by React Table inside Table.jsx, but we also track page in API queries)
   const [page, setPage] = useState(0);
   const [size] = useState(10);
@@ -54,12 +55,47 @@ const Orders = () => {
         customerName: searchCustomer || undefined,
         status: filterStatus || undefined
       };
-      
+
       const response = await orderService.getAdminOrders(params);
       console.log('>>> [API - Orders List] response:', response);
       if (response && response.success) {
         // Handle content in paginated result or default flat list
-        const content = response.result?.content || response.result || [];
+        let content = response.result?.content || response.result || [];
+
+        // Client-side backup filtering in case backend ignores query parameters
+        if (searchId) {
+          content = content.filter(o => {
+            const oid = String(o.orderId || o.id || '').toLowerCase();
+            return oid.includes(searchId.trim().toLowerCase());
+          });
+        }
+        if (searchCustomer) {
+          content = content.filter(o => {
+            const receiverName = String(o.shippingAddress?.receiverName || o.customerName || '').toLowerCase();
+            const receiverPhone = String(o.shippingAddress?.receiverPhone || o.customerPhone || '').toLowerCase();
+            return receiverName.includes(searchCustomer.trim().toLowerCase()) || receiverPhone.includes(searchCustomer.trim().toLowerCase());
+          });
+        }
+        if (filterStatus) {
+          content = content.filter(o => {
+            const stat = String(o.status || '').toUpperCase();
+            const filter = filterStatus.toUpperCase();
+            if (filter === 'PROCESSING') {
+              return ['PROCESSING', 'SHIPPING', 'DELIVERING'].includes(stat);
+            }
+            if (filter === 'COMPLETED') {
+              return ['COMPLETED', 'COMPLETE', 'SUCCESS'].includes(stat);
+            }
+            if (filter === 'PENDING') {
+              return ['PENDING', 'UNCONFIRMED'].includes(stat);
+            }
+            if (filter === 'CANCELLED') {
+              return ['CANCELLED', 'CANCEL', 'CANCELED'].includes(stat);
+            }
+            return stat === filter;
+          });
+        }
+
         setOrders(content);
         setTotalElements(response.result?.totalElements || content.length);
       } else {
@@ -103,8 +139,10 @@ const Orders = () => {
       const response = await orderService.prepareOrder(orderId);
       if (response && response.success) {
         toast.success(response.message || `Đơn hàng ${orderId} đã duyệt vận chuyển thành công!`);
-        // Refresh details modal with newly updated status
-        await handleViewDetails(orderId);
+        // Refresh details modal with newly updated status if it's currently open
+        if (selectedOrder && selectedOrder.orderId === orderId) {
+          await handleViewDetails(orderId);
+        }
         // Refresh master list
         fetchOrders();
       } else {
@@ -123,12 +161,20 @@ const Orders = () => {
     const s = String(status).toUpperCase();
     switch (s) {
       case 'COMPLETED':
+      case 'COMPLETE':
+      case 'SUCCESS':
         return { text: 'Đã hoàn thành', color: '#22c55e', bg: 'rgba(34, 197, 94, 0.1)', icon: CheckCircle };
       case 'PROCESSING':
+      case 'SHIPPING':
+      case 'DELIVERING':
         return { text: 'Đang vận chuyển', color: '#f26c0d', bg: 'rgba(242, 108, 13, 0.1)', icon: Truck };
       case 'PENDING':
         return { text: 'Chờ duyệt giao', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', icon: Clock };
+      case 'CONFIRMED':
+        return { text: 'Đã xác nhận', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)', icon: CheckCircle };
       case 'CANCELLED':
+      case 'CANCEL':
+      case 'CANCELED':
         return { text: 'Đã hủy', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)', icon: AlertCircle };
       default:
         return { text: status, color: '#8a7260', bg: 'rgba(138, 114, 96, 0.1)', icon: Clock };
@@ -149,30 +195,49 @@ const Orders = () => {
   const columns = useMemo(() => [
     {
       header: 'Mã Đơn Hàng',
-      accessorKey: 'id',
-      cell: (info) => (
-        <span 
-          style={{ fontWeight: '800', color: 'var(--primary)', cursor: 'pointer' }}
-          onClick={() => handleViewDetails(info.getValue())}
-        >
-          {info.getValue()}
-        </span>
-      )
+      accessorKey: 'orderId',
+      cell: (info) => {
+        const val = info.getValue() || info.row.original.id || '';
+        return (
+          <span
+            style={{
+              fontWeight: '800',
+              color: 'var(--primary)',
+              cursor: 'pointer',
+              fontSize: '0.7rem',
+              fontFamily: 'monospace',
+              letterSpacing: '-0.035em',
+              wordBreak: 'break-all'
+            }}
+            onClick={() => handleViewDetails(val)}
+          >
+            {val}
+          </span>
+        );
+      }
     },
     {
       header: 'Khách Hàng',
-      accessorKey: 'customerName',
-      cell: (info) => (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{info.getValue()}</span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{info.row.original.customerPhone}</span>
-        </div>
-      )
+      accessorKey: 'shippingAddress.receiverName',
+      cell: (info) => {
+        const addr = info.row.original.shippingAddress || {};
+        const receiverName = addr.receiverName || info.row.original.customerName || 'N/A';
+        const receiverPhone = addr.receiverPhone || info.row.original.customerPhone || 'N/A';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{receiverName}</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{receiverPhone}</span>
+          </div>
+        );
+      }
     },
     {
       header: 'Ngày Đặt Hàng',
-      accessorKey: 'orderDate',
-      cell: (info) => formatDate(info.getValue())
+      accessorKey: 'createdAt',
+      cell: (info) => {
+        const dateVal = info.getValue() || info.row.original.orderDate;
+        return formatDate(dateVal);
+      }
     },
     {
       header: 'Tổng Giá Trị',
@@ -186,18 +251,24 @@ const Orders = () => {
     {
       header: 'Thanh Toán',
       accessorKey: 'paymentMethod',
-      cell: (info) => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{getPaymentMethodLabel(info.getValue())}</span>
-          <span style={{ 
-            fontSize: '0.7rem', 
-            fontWeight: '700', 
-            color: info.row.original.paymentStatus === 'PAID' ? 'var(--success)' : 'var(--error)' 
-          }}>
-            {info.row.original.paymentStatus === 'PAID' ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN'}
-          </span>
-        </div>
-      )
+      cell: (info) => {
+        const paymentStatus = info.row.original.paymentStatus;
+        const isPaid = paymentStatus === 'PAID' ||
+          info.row.original.paymentId?.includes('SUCCESS') ||
+          info.row.original.status === 'COMPLETED';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{getPaymentMethodLabel(info.getValue())}</span>
+            <span style={{
+              fontSize: '0.7rem',
+              fontWeight: '700',
+              color: isPaid ? 'var(--success)' : 'var(--error)'
+            }}>
+              {isPaid ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN'}
+            </span>
+          </div>
+        );
+      }
     },
     {
       header: 'Trạng Thái',
@@ -206,13 +277,13 @@ const Orders = () => {
         const config = getStatusConfig(info.getValue());
         const Icon = config.icon;
         return (
-          <span style={{ 
+          <span style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.35rem',
-            padding: '0.35rem 0.75rem', 
-            borderRadius: '9999px', 
-            fontSize: '0.75rem', 
+            padding: '0.35rem 0.75rem',
+            borderRadius: '9999px',
+            fontSize: '0.75rem',
             fontWeight: '800',
             background: config.bg,
             color: config.color,
@@ -227,46 +298,54 @@ const Orders = () => {
     {
       header: 'Thao Tác',
       id: 'actions',
-      cell: (info) => (
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            style={{ 
-              padding: '0.45rem', 
-              color: 'var(--text-muted)',
-              borderRadius: '50%',
-              background: 'var(--bg-light)',
-              border: '1px solid var(--border-color)'
-            }}
-            onClick={() => handleViewDetails(info.row.original.id)}
-          >
-            <Eye size={16} color="var(--primary)" />
-          </Button>
+      cell: (info) => {
+        const currentOrderId = info.row.original.orderId || info.row.original.id;
+        const orderStatus = info.row.original.status?.toUpperCase();
+        const canPrepare = orderStatus === 'PENDING' || orderStatus === 'CONFIRMED';
 
-          {info.row.original.status?.toUpperCase() === 'PENDING' && (
+        return (
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
             <Button
-              variant="primary"
+              variant="ghost"
               size="sm"
               style={{
                 padding: '0.45rem',
+                color: 'var(--text-muted)',
                 borderRadius: '50%',
-                boxShadow: '0 4px 10px rgba(242, 108, 13, 0.2)'
+                background: 'var(--bg-light)',
+                border: '1px solid var(--border-color)'
               }}
-              onClick={() => handlePrepareOrder(info.row.original.id)}
-              isLoading={preparingOrderId === info.row.original.id}
+              onClick={() => handleViewDetails(currentOrderId)}
+              title="Xem chi tiết"
             >
-              <Truck size={16} />
+              <Eye size={16} color="var(--primary)" />
             </Button>
-          )}
-        </div>
-      )
+
+            {canPrepare && (
+              <Button
+                variant="primary"
+                size="sm"
+                style={{
+                  padding: '0.45rem',
+                  borderRadius: '50%',
+                  boxShadow: '0 4px 10px rgba(242, 108, 13, 0.2)'
+                }}
+                onClick={() => handlePrepareOrder(currentOrderId)}
+                isLoading={preparingOrderId === currentOrderId}
+                title="Duyệt giao hàng"
+              >
+                <Truck size={16} />
+              </Button>
+            )}
+          </div>
+        );
+      }
     }
   ], [preparingOrderId]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '3rem' }}>
-      
+
       {/* Header and Quick Stats */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
@@ -274,9 +353,9 @@ const Orders = () => {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Theo dõi, tra cứu và duyệt trạng thái vận chuyển cho đơn hàng</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <Button 
-            variant="secondary" 
-            icon={Download} 
+          <Button
+            variant="secondary"
+            icon={Download}
             size="sm"
             onClick={() => {
               toast.success('Báo cáo đơn hàng đã được xuất thành công!');
@@ -300,19 +379,19 @@ const Orders = () => {
         alignItems: 'flex-end'
       }}>
         <div style={{ flex: 1, minWidth: '200px' }}>
-          <Input 
-            label="Tìm theo Mã Đơn" 
-            placeholder="Nhập mã đơn (Ví dụ: OMS-1001)..." 
+          <Input
+            label="Tìm theo Mã Đơn"
+            placeholder="Nhập mã đơn ..."
             icon={Search}
             value={searchId}
             onChange={(e) => setSearchId(e.target.value)}
           />
         </div>
-        
+
         <div style={{ flex: 1, minWidth: '200px' }}>
-          <Input 
-            label="Tìm tên Khách Hàng" 
-            placeholder="Nhập tên khách hàng..." 
+          <Input
+            label="Tìm tên Khách Hàng"
+            placeholder="Nhập tên khách hàng..."
             icon={User}
             value={searchCustomer}
             onChange={(e) => setSearchCustomer(e.target.value)}
@@ -342,28 +421,28 @@ const Orders = () => {
               }}
             >
               <option value="">Tất cả trạng thái</option>
-              <option value="PENDING">Chờ duyệt giao (Pending)</option>
-              <option value="PROCESSING">Đang vận chuyển (Processing)</option>
-              <option value="COMPLETED">Đã hoàn thành (Completed)</option>
-              <option value="CANCELLED">Đã hủy (Cancelled)</option>
+              <option value="PENDING">Chờ duyệt giao</option>
+              <option value="CONFIRMED">Đã xác nhận</option>
+              <option value="PROCESSING">Đang vận chuyển</option>
+              <option value="COMPLETED">Đã hoàn thành</option>
+              <option value="CANCELLED">Đã hủy</option>
             </select>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <Button 
-            variant="primary" 
-            size="md"
-            onClick={fetchOrders}
-            style={{ padding: '0.85rem 1.5rem', borderRadius: 'var(--radius-lg)' }}
-          >
-            Lọc Đơn
-          </Button>
-          {(searchId || searchCustomer || filterStatus) && (
-            <Button 
-              variant="secondary" 
+        {(searchId || searchCustomer || filterStatus) && (
+          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <Button
+              variant="secondary"
               size="md"
-              style={{ padding: '0.85rem 1rem', borderRadius: 'var(--radius-lg)' }}
+              style={{ 
+                padding: '0.85rem 1.25rem', 
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                color: '#ef4444',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                fontWeight: '700'
+              }}
               onClick={() => {
                 setSearchId('');
                 setSearchCustomer('');
@@ -372,8 +451,8 @@ const Orders = () => {
             >
               Đặt lại
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Main Table Wrapper */}
@@ -382,7 +461,7 @@ const Orders = () => {
       </div>
 
       {/* DETAILED GLASSMORPHISM ORDER MODAL */}
-      {selectedOrder && (
+      {selectedOrder && createPortal(
         <div style={{
           position: 'fixed',
           top: 0,
@@ -413,9 +492,9 @@ const Orders = () => {
             position: 'relative',
             animation: 'fadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
           }}>
-            
+
             {/* Close Button */}
-            <button 
+            <button
               onClick={() => setSelectedOrder(null)}
               style={{
                 position: 'absolute',
@@ -440,8 +519,8 @@ const Orders = () => {
             </button>
 
             {/* Modal Header */}
-            <div style={{ 
-              padding: '1.75rem', 
+            <div style={{
+              padding: '1.75rem',
               borderBottom: '1px solid var(--border-color)',
               display: 'flex',
               justifyContent: 'space-between',
@@ -453,10 +532,24 @@ const Orders = () => {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <FileText size={24} color="var(--primary)" />
-                  <h3 style={{ fontSize: '1.35rem', fontWeight: '800', margin: 0 }}>Chi tiết Đơn hàng {selectedOrder.id}</h3>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
+                    <span>Chi tiết Đơn hàng</span>
+                    <code style={{
+                      fontSize: '0.85rem',
+                      padding: '0.2rem 0.5rem',
+                      background: 'var(--bg-main)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '6px',
+                      color: 'var(--primary)',
+                      fontWeight: '600',
+                      fontFamily: 'monospace'
+                    }}>
+                      #{selectedOrder.orderId || selectedOrder.id}
+                    </code>
+                  </h3>
                 </div>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.825rem', fontWeight: '600', marginTop: '0.2rem' }}>
-                  Khởi tạo lúc: {formatDate(selectedOrder.orderDate)}
+                  Khởi tạo lúc: {formatDate(selectedOrder.createdAt || selectedOrder.orderDate)}
                 </p>
               </div>
 
@@ -466,13 +559,13 @@ const Orders = () => {
                   const config = getStatusConfig(selectedOrder.status);
                   const Icon = config.icon;
                   return (
-                    <span style={{ 
+                    <span style={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '0.4rem',
-                      padding: '0.5rem 1rem', 
-                      borderRadius: '9999px', 
-                      fontSize: '0.8rem', 
+                      padding: '0.5rem 1rem',
+                      borderRadius: '9999px',
+                      fontSize: '0.8rem',
                       fontWeight: '800',
                       background: config.bg,
                       color: config.color,
@@ -488,46 +581,81 @@ const Orders = () => {
 
             {/* Modal Body */}
             <div style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-              
+
+              {/* Cancellation Reason Alert Banner */}
+              {selectedOrder.status === 'CANCELLED' && (selectedOrder.errorMessage || selectedOrder.message) && (
+                <div style={{
+                  background: 'rgba(239, 68, 68, 0.08)',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '1.25rem',
+                  display: 'flex',
+                  gap: '0.85rem',
+                  alignItems: 'flex-start',
+                  boxShadow: 'var(--shadow-subtle)',
+                  animation: 'fadeIn 0.25s ease-out'
+                }}>
+                  <AlertCircle size={20} color="#ef4444" style={{ marginTop: '2px', flexShrink: 0 }} />
+                  <div>
+                    <h5 style={{ margin: '0 0 0.35rem 0', fontWeight: '800', color: '#ef4444', fontSize: '0.95rem' }}>
+                      Lý do hủy đơn hàng (Từ hệ thống AI)
+                    </h5>
+                    <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-main)', fontWeight: '600' }}>
+                      {selectedOrder.errorMessage || selectedOrder.message}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Information Cards Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-                
+
                 {/* customer Information */}
-                <div style={{ 
-                  background: 'var(--bg-light)', 
-                  border: '1px solid var(--border-color)', 
-                  borderRadius: 'var(--radius-lg)', 
-                  padding: '1.25rem' 
+                <div style={{
+                  background: 'var(--bg-light)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '1.25rem'
                 }}>
                   <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--primary)', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <User size={16} /> Thông Tin Khách Hàng
                   </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.9rem' }}>
-                    <div>
-                      <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Tên người nhận:</span>
-                      <p style={{ fontWeight: '700', color: 'var(--text-main)', marginTop: '0.1rem' }}>{selectedOrder.customerName}</p>
-                    </div>
-                    <div>
-                      <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Số điện thoại:</span>
-                      <p style={{ fontWeight: '700', color: 'var(--text-main)', marginTop: '0.1rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <Phone size={13} color="var(--text-muted)" /> {selectedOrder.customerPhone}
-                      </p>
-                    </div>
-                    <div>
-                      <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Địa chỉ nhận hàng:</span>
-                      <p style={{ fontWeight: '600', color: 'var(--text-main)', marginTop: '0.1rem', display: 'flex', alignItems: 'flex-start', gap: '0.25rem', lineHeight: '1.4' }}>
-                        <MapPin size={13} color="var(--text-muted)" style={{ marginTop: '3px', flexShrink: 0 }} /> {selectedOrder.shippingAddress}
-                      </p>
-                    </div>
-                  </div>
+                  {(() => {
+                    const addr = selectedOrder.shippingAddress || {};
+                    const receiverName = addr.receiverName || selectedOrder.customerName || 'N/A';
+                    const receiverPhone = addr.receiverPhone || selectedOrder.customerPhone || 'N/A';
+                    const fullAddress = [addr.street, addr.ward, addr.city].filter(Boolean).join(', ') || selectedOrder.shippingAddress || 'N/A';
+
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.9rem' }}>
+                        <div>
+                          <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Tên người nhận:</span>
+                          <p style={{ fontWeight: '700', color: 'var(--text-main)', marginTop: '0.1rem' }}>{receiverName}</p>
+                        </div>
+                        <div>
+                          <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Số điện thoại:</span>
+                          <p style={{ fontWeight: '700', color: 'var(--text-main)', marginTop: '0.1rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Phone size={13} color="var(--text-muted)" /> {receiverPhone}
+                          </p>
+                        </div>
+                        <div>
+                          <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Địa chỉ nhận hàng:</span>
+                          <p style={{ fontWeight: '600', color: 'var(--text-main)', marginTop: '0.1rem', display: 'flex', alignItems: 'flex-start', gap: '0.25rem', lineHeight: '1.4' }}>
+                            <MapPin size={13} color="var(--text-muted)" style={{ marginTop: '3px', flexShrink: 0 }} />
+                            {fullAddress}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Payment Information */}
-                <div style={{ 
-                  background: 'var(--bg-light)', 
-                  border: '1px solid var(--border-color)', 
-                  borderRadius: 'var(--radius-lg)', 
-                  padding: '1.25rem' 
+                <div style={{
+                  background: 'var(--bg-light)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '1.25rem'
                 }}>
                   <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--primary)', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <CreditCard size={16} /> Phương Thức Thanh Toán
@@ -535,21 +663,30 @@ const Orders = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.9rem' }}>
                     <div>
                       <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Cổng thanh toán:</span>
-                      <p style={{ fontWeight: '700', color: 'var(--text-main)', marginTop: '0.1rem' }}>{getPaymentMethodLabel(selectedOrder.paymentMethod)}</p>
+                      <p style={{ fontWeight: '700', color: 'var(--text-main)', marginTop: '0.1rem' }}>
+                        {getPaymentMethodLabel(selectedOrder.paymentMethod)}
+                      </p>
                     </div>
                     <div>
                       <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Trạng thái thanh toán:</span>
-                      <p style={{ 
-                        fontWeight: '800', 
-                        color: selectedOrder.paymentStatus === 'PAID' ? 'var(--success)' : 'var(--error)', 
-                        marginTop: '0.1rem',
-                        display: 'inline-flex',
-                        padding: '0.15rem 0.5rem',
-                        background: selectedOrder.paymentStatus === 'PAID' ? 'rgba(34, 197, 94, 0.08)' : 'rgba(239, 68, 68, 0.08)',
-                        borderRadius: '4px'
-                      }}>
-                        {selectedOrder.paymentStatus === 'PAID' ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN'}
-                      </p>
+                      {(() => {
+                        const isPaid = selectedOrder.paymentStatus === 'PAID' ||
+                          selectedOrder.paymentId?.includes('SUCCESS') ||
+                          selectedOrder.status === 'COMPLETED';
+                        return (
+                          <p style={{
+                            fontWeight: '800',
+                            color: isPaid ? 'var(--success)' : 'var(--error)',
+                            marginTop: '0.1rem',
+                            display: 'inline-flex',
+                            padding: '0.15rem 0.5rem',
+                            background: isPaid ? 'rgba(34, 197, 94, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                            borderRadius: '4px'
+                          }}>
+                            {isPaid ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN'}
+                          </p>
+                        );
+                      })()}
                     </div>
                     <div>
                       <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Tổng thanh toán:</span>
@@ -564,127 +701,192 @@ const Orders = () => {
 
               {/* Order Items Table */}
               <div>
-                <h4 style={{ fontSize: '1rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '0.75rem' }}>
-                  Danh Sách Sản Phẩm Đặt Mua ({selectedOrder.items?.length || 0})
-                </h4>
-                <div style={{ 
-                  border: '1px solid var(--border-color)', 
-                  borderRadius: 'var(--radius-lg)', 
-                  overflow: 'hidden'
-                }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-                    <thead>
-                      <tr style={{ background: 'rgba(0,0,0,0.02)', borderBottom: '1px solid var(--border-color)' }}>
-                        <th style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontWeight: '700' }}>Sản phẩm</th>
-                        <th style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontWeight: '700', textAlign: 'right' }}>Giá bán</th>
-                        <th style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontWeight: '700', textAlign: 'center' }}>Số lượng</th>
-                        <th style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontWeight: '700', textAlign: 'right' }}>Thành tiền</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedOrder.items?.map((item) => (
-                        <tr key={item.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            {item.imageUrl ? (
-                              <img 
-                                src={item.imageUrl} 
-                                alt={item.productName} 
-                                style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border-color)' }}
-                              />
-                            ) : (
-                              <div style={{ width: '40px', height: '40px', background: 'var(--border-color)', borderRadius: '6px' }} />
-                            )}
-                            <div>
-                              <p style={{ fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>{item.productName}</p>
-                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '500' }}>Mã SP: {item.id}</span>
-                            </div>
-                          </td>
-                          <td style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: '600' }}>
-                            {formatCurrency(item.price)}
-                          </td>
-                          <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: '700', color: 'var(--primary)' }}>
-                            {item.quantity}
-                          </td>
-                          <td style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: '800', color: 'var(--text-main)' }}>
-                            {formatCurrency(item.price * item.quantity)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                {(() => {
+                  const orderItems = selectedOrder.orderItems || selectedOrder.items || [];
+                  return (
+                    <>
+                      <h4 style={{ fontSize: '1rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '0.75rem' }}>
+                        Danh Sách Sản Phẩm Đặt Mua ({orderItems.length})
+                      </h4>
+                      <div style={{
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-lg)',
+                        overflow: 'hidden'
+                      }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                          <thead>
+                            <tr style={{ background: 'rgba(0,0,0,0.02)', borderBottom: '1px solid var(--border-color)' }}>
+                              <th style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontWeight: '700' }}>Sản phẩm</th>
+                              <th style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontWeight: '700', textAlign: 'right' }}>Giá bán</th>
+                              <th style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontWeight: '700', textAlign: 'center' }}>Số lượng</th>
+                              <th style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontWeight: '700', textAlign: 'right' }}>Thành tiền</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {orderItems.map((item, idx) => {
+                              const itemId = item.productId || item.id || `item-${idx}`;
+                              const itemName = item.productName || 'Sản phẩm';
+                              const itemPrice = item.price || item.unitPrice || 0;
+                              const itemQty = item.quantity || item.amount || 1;
+
+                              return (
+                                <tr key={itemId} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                  <td style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    {item.imageUrl ? (
+                                      <img
+                                        src={item.imageUrl}
+                                        alt={itemName}
+                                        style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border-color)' }}
+                                      />
+                                    ) : (
+                                      <div style={{ width: '40px', height: '40px', background: 'var(--border-color)', borderRadius: '6px' }} />
+                                    )}
+                                    <div>
+                                      <p style={{ fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>{itemName}</p>
+                                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '500' }}>Mã SP: {itemId}</span>
+                                    </div>
+                                  </td>
+                                  <td style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: '600' }}>
+                                    {formatCurrency(itemPrice)}
+                                  </td>
+                                  <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: '700', color: 'var(--primary)' }}>
+                                    {itemQty}
+                                  </td>
+                                  <td style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: '800', color: 'var(--text-main)' }}>
+                                    {formatCurrency(itemPrice * itemQty)}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
 
               {/* Status workflow timeline illustration */}
               <div>
                 <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '1rem' }}>
-                  Tiến Trình Đơn Hàng
+                  Tiến Trình Đơn Hàng (Đồng bộ với Khách hàng)
                 </h4>
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center', 
-                  background: 'var(--bg-light)', 
-                  padding: '1.25rem 2rem', 
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  background: 'var(--bg-light)',
+                  padding: '1.25rem 1.5rem',
                   borderRadius: 'var(--radius-lg)',
                   border: '1px solid var(--border-color)',
                   position: 'relative',
                   overflowX: 'auto',
-                  gap: '1rem'
+                  gap: '0.5rem'
                 }}>
-                  {/* Step 1: PENDING */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1 }}>
-                    <div style={{
-                      width: '32px', height: '32px', borderRadius: '50%',
-                      background: 'var(--warning)', color: 'white',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: '800', fontSize: '0.85rem',
-                      boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)'
-                    }}>✓</div>
-                    <span style={{ fontSize: '0.75rem', fontWeight: '700', marginTop: '0.5rem', color: 'var(--text-main)' }}>Khách đặt hàng</span>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Đã tạo đơn</span>
-                  </div>
+                  {(() => {
+                    const status = selectedOrder.status?.toUpperCase() || 'PENDING';
 
-                  <div style={{ flex: 1, height: '3px', background: selectedOrder.status !== 'PENDING' ? 'var(--primary)' : 'var(--border-color)', minWidth: '40px' }} />
+                    const isStep1Active = true; // Đã đặt hàng
+                    const isStep2Active = ['CONFIRMED', 'PROCESSING', 'DELIVERING', 'SHIPPING', 'COMPLETED'].includes(status); // Đã xác nhận
+                    const isStep3Active = ['PROCESSING', 'DELIVERING', 'SHIPPING', 'COMPLETED'].includes(status); // Bàn giao
+                    const isStep4Active = ['DELIVERING', 'SHIPPING', 'COMPLETED'].includes(status); // Đang giao
+                    const isStep5Active = ['COMPLETED'].includes(status); // Hoàn thành
 
-                  {/* Step 2: PROCESSING / PREPARED */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1 }}>
-                    <div style={{
-                      width: '32px', height: '32px', borderRadius: '50%',
-                      background: (selectedOrder.status === 'PROCESSING' || selectedOrder.status === 'COMPLETED') ? 'var(--primary)' : 'var(--border-color)',
-                      color: (selectedOrder.status === 'PROCESSING' || selectedOrder.status === 'COMPLETED') ? 'white' : 'var(--text-muted)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: '800', fontSize: '0.85rem'
-                    }}>{(selectedOrder.status === 'PROCESSING' || selectedOrder.status === 'COMPLETED') ? '✓' : '2'}</div>
-                    <span style={{ fontSize: '0.75rem', fontWeight: '700', marginTop: '0.5rem', color: (selectedOrder.status === 'PROCESSING' || selectedOrder.status === 'COMPLETED') ? 'var(--text-main)' : 'var(--text-muted)' }}>Chuẩn bị & Giao vận</span>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                      {selectedOrder.status === 'PENDING' ? 'Chờ chuẩn bị' : 'Đang giao hàng'}
-                    </span>
-                  </div>
+                    return (
+                      <>
+                        {/* Step 1: Đã đặt hàng */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, flex: 1 }}>
+                          <div style={{
+                            width: '32px', height: '32px', borderRadius: '50%',
+                            background: 'var(--primary)', color: 'white',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontWeight: '800', fontSize: '0.85rem',
+                            boxShadow: '0 0 10px rgba(234, 88, 12, 0.3)'
+                          }}>✓</div>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '700', marginTop: '0.5rem', color: 'var(--text-main)', textAlign: 'center' }}>Đã đặt hàng</span>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center' }}>Chờ xác nhận</span>
+                        </div>
 
-                  <div style={{ flex: 1, height: '3px', background: selectedOrder.status === 'COMPLETED' ? 'var(--success)' : 'var(--border-color)', minWidth: '40px' }} />
+                        <div style={{ flex: 1, height: '3px', background: isStep2Active ? 'var(--primary)' : 'var(--border-color)', minWidth: '20px', alignSelf: 'center', marginBottom: '24px' }} />
 
-                  {/* Step 3: COMPLETED */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1 }}>
-                    <div style={{
-                      width: '32px', height: '32px', borderRadius: '50%',
-                      background: selectedOrder.status === 'COMPLETED' ? 'var(--success)' : 'var(--border-color)',
-                      color: selectedOrder.status === 'COMPLETED' ? 'white' : 'var(--text-muted)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: '800', fontSize: '0.85rem',
-                      boxShadow: selectedOrder.status === 'COMPLETED' ? '0 0 10px rgba(34, 197, 94, 0.3)' : 'none'
-                    }}>{selectedOrder.status === 'COMPLETED' ? '✓' : '3'}</div>
-                    <span style={{ fontSize: '0.75rem', fontWeight: '700', marginTop: '0.5rem', color: selectedOrder.status === 'COMPLETED' ? 'var(--text-main)' : 'var(--text-muted)' }}>Đã hoàn thành</span>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Giao hàng thành công</span>
-                  </div>
+                        {/* Step 2: Đã xác nhận */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, flex: 1 }}>
+                          <div style={{
+                            width: '32px', height: '32px', borderRadius: '50%',
+                            background: isStep2Active ? 'var(--primary)' : 'var(--border-color)',
+                            color: isStep2Active ? 'white' : 'var(--text-muted)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontWeight: '800', fontSize: '0.85rem',
+                            boxShadow: isStep2Active ? '0 0 10px rgba(234, 88, 12, 0.2)' : 'none'
+                          }}>{isStep2Active ? '✓' : '2'}</div>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '700', marginTop: '0.5rem', color: isStep2Active ? 'var(--text-main)' : 'var(--text-muted)', textAlign: 'center' }}>Đã xác nhận</span>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                            {isStep2Active ? 'Đã duyệt' : 'Chờ duyệt'}
+                          </span>
+                        </div>
+
+                        <div style={{ flex: 1, height: '3px', background: isStep3Active ? 'var(--primary)' : 'var(--border-color)', minWidth: '20px', alignSelf: 'center', marginBottom: '24px' }} />
+
+                        {/* Step 3: Bàn giao */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, flex: 1 }}>
+                          <div style={{
+                            width: '32px', height: '32px', borderRadius: '50%',
+                            background: isStep3Active ? 'var(--primary)' : 'var(--border-color)',
+                            color: isStep3Active ? 'white' : 'var(--text-muted)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontWeight: '800', fontSize: '0.85rem',
+                            boxShadow: isStep3Active ? '0 0 10px rgba(234, 88, 12, 0.2)' : 'none'
+                          }}>{isStep3Active ? '✓' : '3'}</div>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '700', marginTop: '0.5rem', color: isStep3Active ? 'var(--text-main)' : 'var(--text-muted)', textAlign: 'center' }}>Bàn giao</span>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                            {isStep3Active ? 'Đang soạn hàng' : 'Chờ chuẩn bị'}
+                          </span>
+                        </div>
+
+                        <div style={{ flex: 1, height: '3px', background: isStep4Active ? 'var(--primary)' : 'var(--border-color)', minWidth: '20px', alignSelf: 'center', marginBottom: '24px' }} />
+
+                        {/* Step 4: Đang giao */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, flex: 1 }}>
+                          <div style={{
+                            width: '32px', height: '32px', borderRadius: '50%',
+                            background: isStep4Active ? 'var(--primary)' : 'var(--border-color)',
+                            color: isStep4Active ? 'white' : 'var(--text-muted)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontWeight: '800', fontSize: '0.85rem',
+                            boxShadow: isStep4Active ? '0 0 10px rgba(234, 88, 12, 0.2)' : 'none'
+                          }}>{isStep4Active ? '✓' : '4'}</div>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '700', marginTop: '0.5rem', color: isStep4Active ? 'var(--text-main)' : 'var(--text-muted)', textAlign: 'center' }}>Đang giao</span>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                            {isStep4Active ? 'Đang vận chuyển' : 'Chờ xuất kho'}
+                          </span>
+                        </div>
+
+                        <div style={{ flex: 1, height: '3px', background: isStep5Active ? 'var(--success)' : 'var(--border-color)', minWidth: '20px', alignSelf: 'center', marginBottom: '24px' }} />
+
+                        {/* Step 5: Hoàn thành */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, flex: 1 }}>
+                          <div style={{
+                            width: '32px', height: '32px', borderRadius: '50%',
+                            background: isStep5Active ? 'var(--success)' : 'var(--border-color)',
+                            color: isStep5Active ? 'white' : 'var(--text-muted)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontWeight: '800', fontSize: '0.85rem',
+                            boxShadow: isStep5Active ? '0 0 10px rgba(34, 197, 94, 0.3)' : 'none'
+                          }}>{isStep5Active ? '✓' : '5'}</div>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '700', marginTop: '0.5rem', color: isStep5Active ? 'var(--text-main)' : 'var(--text-muted)', textAlign: 'center' }}>Hoàn thành</span>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center' }}>Giao thành công</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
 
             </div>
 
             {/* Modal Footer / Action Bar */}
-            <div style={{ 
-              padding: '1.25rem 1.75rem', 
+            <div style={{
+              padding: '1.25rem 1.75rem',
               borderTop: '1px solid var(--border-color)',
               background: 'rgba(0,0,0,0.01)',
               display: 'flex',
@@ -692,20 +894,20 @@ const Orders = () => {
               gap: '0.75rem',
               alignItems: 'center'
             }}>
-              <Button 
+              <Button
                 variant="secondary"
                 onClick={() => setSelectedOrder(null)}
               >
                 Đóng lại
               </Button>
-              
+
               {/* Duyệt vận chuyển Button (Approve to shipping) */}
-              {selectedOrder.status?.toUpperCase() === 'PENDING' && (
+              {(selectedOrder.status?.toUpperCase() === 'PENDING' || selectedOrder.status?.toUpperCase() === 'CONFIRMED') && (
                 <Button
                   variant="primary"
                   icon={Truck}
-                  onClick={() => handlePrepareOrder(selectedOrder.id)}
-                  isLoading={preparingOrderId === selectedOrder.id}
+                  onClick={() => handlePrepareOrder(selectedOrder.orderId || selectedOrder.id)}
+                  isLoading={preparingOrderId === (selectedOrder.orderId || selectedOrder.id)}
                   style={{
                     padding: '0.75rem 1.75rem',
                     fontSize: '0.95rem',
@@ -720,7 +922,8 @@ const Orders = () => {
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Simple global animations injected */}
