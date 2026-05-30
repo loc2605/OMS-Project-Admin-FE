@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
+import Select from '../../components/common/Select';
 import { 
   Plus, 
   Edit, 
@@ -52,6 +53,15 @@ const ProductList = () => {
     imageUrl: '',
     categoryName: ''
   });
+
+  const categoryOptions = useMemo(() => {
+    const names = new Set(
+      products.map((p) => p.categoryName).filter(Boolean)
+    );
+    if (productForm.categoryName) names.add(productForm.categoryName);
+    if (editingProduct?.categoryName) names.add(editingProduct.categoryName);
+    return [...names].sort((a, b) => a.localeCompare(b, 'vi'));
+  }, [products, productForm.categoryName, editingProduct]);
 
   const [isStockOpen, setIsStockOpen] = useState(false);
   const [stockProduct, setStockProduct] = useState(null);
@@ -472,17 +482,30 @@ const ProductList = () => {
                   borderRadius: 'var(--radius-xl)',
                   border: '1px solid var(--border-color)',
                   boxShadow: 'var(--shadow-xl)',
-                  overflow: 'hidden'
+                  overflow: 'visible',
+                  maxHeight: 'min(92vh, 720px)',
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)', flexShrink: 0 }}>
                   <h3 style={{ margin: 0, fontSize: '1.15rem' }}>{editingProduct ? 'Chỉnh sửa thông tin sản phẩm' : 'Thêm sản phẩm mới'}</h3>
                   <button onClick={() => setIsAddEditOpen(false)} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <X size={20} />
                   </button>
                 </div>
 
-                <form onSubmit={handleProductSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <form
+                  onSubmit={handleProductSubmit}
+                  style={{
+                    padding: '1.5rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1.2rem',
+                    overflowY: 'auto',
+                    flex: 1,
+                  }}
+                >
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <Input 
                       label="Tên sản phẩm"
@@ -503,24 +526,28 @@ const ProductList = () => {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <Input 
-                      label="Giá bán (VND)"
+                      label="Giá bán (đồng)"
                       type="number"
                       value={productForm.price}
                       onChange={(e) => setProductForm({...productForm, price: e.target.value})}
                       required
                     />
-                    <Input 
-                      label="Phân nhóm ngành hàng (Category)"
-                      type="text"
-                      placeholder="ví dụ: Thời trang Nam"
+                    <Select
+                      label="Phân loại sản phẩm"
                       value={productForm.categoryName}
-                      onChange={(e) => setProductForm({...productForm, categoryName: e.target.value})}
+                      onChange={(categoryName) =>
+                        setProductForm({ ...productForm, categoryName })
+                      }
+                      options={categoryOptions}
+                      placeholder="— Chọn phân loại —"
+                      emptyMessage="Chưa có phân loại trong dữ liệu"
+                      disabled={categoryOptions.length === 0}
                       required
                     />
                   </div>
 
                   <Input 
-                    label="Đường dẫn ảnh sản phẩm (Image URL)"
+                    label="Đường dẫn ảnh sản phẩm"
                     type="text"
                     placeholder="https://example.com/images/product.png"
                     value={productForm.imageUrl}

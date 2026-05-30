@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Users, 
   Mail, 
@@ -10,18 +10,23 @@ import {
   UserCheck,
   Calendar,
   Smile,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import customerService from '../../services/customerService';
 import Button from '../../components/common/Button';
-import { formatDate, formatDateOnly } from '../../utils/format';
+import { formatDateOnly } from '../../utils/format';
+
+const CUSTOMERS_PER_PAGE = 9;
 
 const UserList = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(0);
 
   const loadCustomers = async () => {
     setLoading(true);
@@ -84,16 +89,43 @@ const UserList = () => {
     loadCustomers();
   }, []);
 
-  // Filter customers by name or email or phone or accountId
-  const filteredCustomers = customers.filter(c => {
-    const q = searchQuery.toLowerCase();
-    return (
-      c.fullname?.toLowerCase().includes(q) ||
-      c.email?.toLowerCase().includes(q) ||
-      c.phone?.includes(q) ||
-      c.id?.toLowerCase().includes(q)
+  const filteredCustomers = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return customers;
+    return customers.filter(
+      (c) =>
+        c.fullname?.toLowerCase().includes(q) ||
+        c.email?.toLowerCase().includes(q) ||
+        c.phone?.includes(q) ||
+        c.id?.toLowerCase().includes(q) ||
+        c.accountId?.toLowerCase().includes(q)
     );
-  });
+  }, [customers, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / CUSTOMERS_PER_PAGE));
+
+  const paginatedCustomers = useMemo(() => {
+    const start = currentPage * CUSTOMERS_PER_PAGE;
+    return filteredCustomers.slice(start, start + CUSTOMERS_PER_PAGE);
+  }, [filteredCustomers, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (currentPage > totalPages - 1) {
+      setCurrentPage(Math.max(0, totalPages - 1));
+    }
+  }, [currentPage, totalPages]);
+
+  const goToPage = (pageIndex) => {
+    setCurrentPage(pageIndex);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const rangeStart = filteredCustomers.length === 0 ? 0 : currentPage * CUSTOMERS_PER_PAGE + 1;
+  const rangeEnd = Math.min((currentPage + 1) * CUSTOMERS_PER_PAGE, filteredCustomers.length);
 
   const getInitials = (name) => {
     if (!name) return 'U';
@@ -188,13 +220,13 @@ const UserList = () => {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Thử thay đổi từ khóa tìm kiếm khác xem sao.</p>
         </div>
       ) : (
-        /* Customers grid */
+        <>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
           gap: '1.25rem'
         }}>
-          {filteredCustomers.map((customer, index) => (
+          {paginatedCustomers.map((customer, index) => (
             <motion.div
               key={customer.id}
               initial={{ opacity: 0, y: 15 }}
@@ -346,6 +378,52 @@ const UserList = () => {
             </motion.div>
           ))}
         </div>
+
+        {filteredCustomers.length > CUSTOMERS_PER_PAGE && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              padding: '1rem 1.25rem',
+              background: 'var(--bg-card)',
+              borderRadius: 'var(--radius-xl)',
+              border: '1px solid var(--border-color)',
+              boxShadow: 'var(--shadow-subtle)',
+            }}
+          >
+            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+              Hiển thị {rangeStart}–{rangeEnd} trên tổng {filteredCustomers.length} khách hàng
+              {' · '}
+              Trang {currentPage + 1}/{totalPages}
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 0}
+                aria-label="Trang trước"
+              >
+                <ChevronLeft size={16} />
+                Trang trước
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage >= totalPages - 1}
+                aria-label="Trang sau"
+              >
+                Trang sau
+                <ChevronRight size={16} />
+              </Button>
+            </div>
+          </div>
+        )}
+        </>
       )}
 
       {/* Embedded keyframe spin style */}

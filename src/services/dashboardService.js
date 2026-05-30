@@ -1,51 +1,55 @@
 import apiClient from '../api/axios';
 
+const analyticsRequest = { skipGlobalErrorToast: true };
+
 const dashboardService = {
-  // 5.2. Số liệu Tóm tắt hoạt động trong ngày (Dashboard Summary)
+  /** GET /api/v1/analytics/dashboard/summary */
   getSummary: async () => {
-    const response = await apiClient.get('/api/v1/analytics/dashboard/summary');
+    const response = await apiClient.get('/api/v1/analytics/dashboard/summary', analyticsRequest);
     return response.data;
   },
 
-  // 5.1. Danh sách cảnh báo tồn kho thấp (Enriched Low-Stock Alerts)
+  /** GET /api/v1/analytics/dashboard/inventory-alerts */
   getInventoryAlerts: async () => {
-    const response = await apiClient.get('/api/v1/analytics/dashboard/inventory-alerts');
+    const response = await apiClient.get('/api/v1/analytics/dashboard/inventory-alerts', analyticsRequest);
     return response.data;
   },
 
-  // 5.3. Số liệu Biểu đồ Doanh thu (Revenue Chart)
+  /** GET /api/v1/analytics/dashboard/revenue-chart?startDate=&endDate= */
   getRevenueChart: async (startDate, endDate) => {
     const response = await apiClient.get('/api/v1/analytics/dashboard/revenue-chart', {
-      params: { startDate, endDate }
+      ...analyticsRequest,
+      params: { startDate, endDate },
     });
     return response.data;
   },
 
-  // 5.4. Danh sách Sản phẩm bán chạy (Top Selling Products)
+  /** GET /api/v1/analytics/dashboard/top-products?limit= */
   getTopProducts: async (limit = 10) => {
     const response = await apiClient.get('/api/v1/analytics/dashboard/top-products', {
-      params: { limit }
+      ...analyticsRequest,
+      params: { limit },
     });
     return response.data;
   },
 
-  // 5.5. Chỉ số hiệu suất Shipper (Shippers KPI)
+  /** GET /api/v1/analytics/dashboard/shippers-kpi */
   getShippersKpi: async () => {
-    const response = await apiClient.get('/api/v1/analytics/dashboard/shippers-kpi');
+    const response = await apiClient.get('/api/v1/analytics/dashboard/shippers-kpi', analyticsRequest);
     return response.data;
   },
 
-  // 1.1. Hỏi đáp & Tư vấn Mua sắm (RAG Chat)
-  chat: async (message, userId = "admin-playground") => {
+  /** POST /api/v1/ai/chat — RAG chat (unchanged) */
+  chat: async (message, userId = 'admin-playground') => {
     const response = await apiClient.post('/api/v1/ai/chat', { message, userId });
     return response.data;
   },
 
-  // 1.2. Đồng bộ hóa Vector DB thủ công
+  /** POST /api/v1/ai/sync/bootstrap */
   syncVectorDb: async () => {
     const response = await apiClient.post('/api/v1/ai/sync/bootstrap');
     return response.data;
-  }
+  },
 };
 
 export default dashboardService;

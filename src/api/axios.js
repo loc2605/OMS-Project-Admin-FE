@@ -28,19 +28,23 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.config?.skipGlobalErrorToast) {
+      return Promise.reject(error);
+    }
+
     const status = error.response ? error.response.status : null;
 
     if (status === 401) {
       // Unauthorized - clear token and redirect to login
       localStorage.removeItem('admin_token');
-      toast.error('Session expired. Please login again.');
+      toast.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
       window.location.href = '/login';
     } else if (status === 403) {
-      toast.error("You don't have permission to perform this action.");
+      toast.error('Bạn không có quyền thực hiện thao tác này.');
     } else if (status >= 500) {
-      toast.error('Server error. Please try again later.');
+      toast.error('Lỗi máy chủ. Vui lòng thử lại sau.');
     } else {
-      toast.error(error.response?.data?.message || 'Something went wrong');
+      toast.error(error.response?.data?.message || 'Đã xảy ra lỗi');
     }
 
     return Promise.reject(error);

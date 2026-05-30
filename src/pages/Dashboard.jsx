@@ -22,10 +22,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import dashboardService from '../services/dashboardService';
 import productService from '../services/productService';
-import customerService from '../services/customerService';
 import Button from '../components/common/Button';
-import Input from '../components/common/Input';
 import { formatCurrency } from '../utils/format';
+import { isApiSuccess } from '../utils/apiResponse';
 import { getStockAction, getStockApiType } from '../constants/stockActions';
 import StockAdjustForm from '../components/inventory/StockAdjustForm';
 
@@ -120,93 +119,106 @@ const Dashboard = () => {
 
   // Chart Tooltip Hover State
   const [hoveredDataPoint, setHoveredDataPoint] = useState(null);
+  const [loadErrors, setLoadErrors] = useState({});
 
-  // Fetch Dashboard Data
+  const EMPTY_SUMMARY = {
+    todayTotalRevenue: 0,
+    todayCompletedOrders: 0,
+    todayCancelRate: 0,
+    lowStockItemsCount: 0,
+  };
+
+  const applyApiResult = (response, onSuccess) => {
+    if (isApiSuccess(response)) {
+      onSuccess(response.result);
+      return true;
+    }
+    return false;
+  };
+
   const fetchDashboardData = async () => {
     setLoading(true);
-    try {
-      // Fetch Summary
-      const summaryRes = await dashboardService.getSummary().catch(err => {
-        console.warn('API error fetching summary, using simulated values', err);
-        return {
-          success: true,
-          result: { todayTotalRevenue: 750000.0, todayCompletedOrders: 2, todayCancelRate: 60.0, lowStockItemsCount: 1 }
-        };
-      });
-      if (summaryRes?.success) setSummary(summaryRes.result);
+    const errors = {};
 
-      // Fetch Low Stock Alerts
-      const alertsRes = await dashboardService.getInventoryAlerts().catch(() => ({
-        success: true,
-        result: [{
-          id: "0162a106-567c-11f1-8df2-8ee8a4861b2f",
-          productId: "6683d3d4-7f77-9795-ecfa-98a300000000",
-          availableQuantity: 0,
-          reservedQuantity: 10,
-          totalQuantity: 10,
-          lowStockThreshold: 10,
-          updatedAt: "2026-05-23T11:29:54.628",
-          message: "LOW STOCK ALERT: Below threshold of 10",
-          product: {
-            id: "6683d3d4-7f77-9795-ecfa-98a300000000",
-            name: "Áo thun nam cổ tròn cotton",
-            description: "Áo chui đầu nhẹ nhàng, dệt kim, thoải mái và linh hoạt.",
-            price: 150000.0,
-            sku: "SKU-MEN-001",
-            imageUrl: ["https://raw.githubusercontent.com/avinashdm/gs-images/main/forever/p_img2_1.png"],
-            categoryName: "Thời trang Nam"
-          }
-        }]
-      }));
-      if (alertsRes?.success) setInventoryAlerts(alertsRes.result);
+    const [
+      summaryResult,
+      alertsResult,
+      chartResult,
+      topProductsResult,
+      shippersResult,
+    ] = await Promise.allSettled([
+      dashboardService.getSummary(),
+      dashboardService.getInventoryAlerts(),
+      dashboardService.getRevenueChart(startDate, endDate),
+      dashboardService.getTopProducts(5),
+      dashboardService.getShippersKpi(),
+    ]);
 
-      // Fetch Revenue Chart
-      const chartRes = await dashboardService.getRevenueChart(startDate, endDate).catch(() => ({
-        success: true,
-        result: [
-          { id: "stat-1", statDate: "2026-05-20", totalRevenue: 300000.0, completedOrders: 2, cancelledOrders: 0 },
-          { id: "stat-2", statDate: "2026-05-21", totalRevenue: 150000.0, completedOrders: 1, cancelledOrders: 0 },
-          { id: "stat-3", statDate: "2026-05-22", totalRevenue: 500000.0, completedOrders: 3, cancelledOrders: 1 },
-          { id: "stat-4", statDate: "2026-05-23", totalRevenue: 450000.0, completedOrders: 3, cancelledOrders: 1 },
-          { id: "stat-5", statDate: "2026-05-24", totalRevenue: 750000.0, completedOrders: 2, cancelledOrders: 3 },
-          { id: "stat-6", statDate: "2026-05-25", totalRevenue: 980000.0, completedOrders: 4, cancelledOrders: 0 },
-          { id: "stat-7", statDate: "2026-05-26", totalRevenue: 1200000.0, completedOrders: 5, cancelledOrders: 1 }
-        ]
-      }));
-      if (chartRes?.success) setRevenueChartData(chartRes.result);
-
-      // Fetch Top Products
-      const topProductsRes = await dashboardService.getTopProducts(5).catch(() => ({
-        success: true,
-        result: [{
-          id: "prod-sales-1",
-          productId: "6683d3d4-7f77-9795-ecfa-98a300000000",
-          productName: "Áo thun nam cổ tròn cotton",
-          productSku: "SKU-MEN-001",
-          totalQuantitySold: 15,
-          totalRevenueGenerated: 2250000.00,
-          lastSoldAt: "2026-05-24T12:00:00"
-        }]
-      }));
-      if (topProductsRes?.success) setTopProducts(topProductsRes.result);
-
-      // Fetch Shippers KPI
-      const shippersRes = await dashboardService.getShippersKpi().catch(() => ({
-        success: true,
-        result: [
-          { shipperName: "Shipper A", shipperPhone: "0912345678", successRate: 100.0, failedDeliveries: 0, averageDeliveryTimeHours: 1.25 },
-          { shipperName: "Shipper B", shipperPhone: "0987654321", successRate: 92.5, failedDeliveries: 2, averageDeliveryTimeHours: 2.1 },
-          { shipperName: "Shipper C", shipperPhone: "0901234567", successRate: 85.0, failedDeliveries: 4, averageDeliveryTimeHours: 3.5 }
-        ]
-      }));
-      if (shippersRes?.success) setShippersKpi(shippersRes.result);
-
-    } catch (err) {
-      console.error(err);
-      toast.error("Không thể kết nối API. Hiển thị dữ liệu giả lập.");
-    } finally {
-      setLoading(false);
+    if (summaryResult.status === 'fulfilled') {
+      if (!applyApiResult(summaryResult.value, setSummary)) {
+        setSummary(EMPTY_SUMMARY);
+        errors.summary = true;
+      }
+    } else {
+      setSummary(EMPTY_SUMMARY);
+      errors.summary = true;
+      console.error('Summary API:', summaryResult.reason);
     }
+
+    if (alertsResult.status === 'fulfilled') {
+      if (!applyApiResult(alertsResult.value, setInventoryAlerts)) {
+        setInventoryAlerts([]);
+        errors.alerts = true;
+      }
+    } else {
+      setInventoryAlerts([]);
+      errors.alerts = true;
+      console.error('Inventory alerts API:', alertsResult.reason);
+    }
+
+    if (chartResult.status === 'fulfilled') {
+      if (!applyApiResult(chartResult.value, setRevenueChartData)) {
+        setRevenueChartData([]);
+        errors.chart = true;
+      }
+    } else {
+      setRevenueChartData([]);
+      errors.chart = true;
+      console.error('Revenue chart API:', chartResult.reason);
+    }
+
+    if (topProductsResult.status === 'fulfilled') {
+      if (!applyApiResult(topProductsResult.value, setTopProducts)) {
+        setTopProducts([]);
+        errors.topProducts = true;
+      }
+    } else {
+      setTopProducts([]);
+      errors.topProducts = true;
+      console.error('Top products API:', topProductsResult.reason);
+    }
+
+    if (shippersResult.status === 'fulfilled') {
+      if (!applyApiResult(shippersResult.value, setShippersKpi)) {
+        setShippersKpi([]);
+        errors.shippers = true;
+      }
+    } else {
+      setShippersKpi([]);
+      errors.shippers = true;
+      console.error('Shippers KPI API:', shippersResult.reason);
+    }
+
+    setLoadErrors(errors);
+
+    const failedCount = Object.keys(errors).length;
+    if (failedCount === 5) {
+      toast.error('Không thể tải dữ liệu tổng quan. Kiểm tra kết nối API.');
+    } else if (failedCount > 0) {
+      toast.warning(`Một số mục chưa tải được (${failedCount}/5). Bấm Làm mới để thử lại.`);
+    }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -226,7 +238,7 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.success("Đồng bộ thành công 45 sản phẩm vào Redis Vector Store. (Simulated)");
+      toast.error('Không thể đồng bộ Vector DB. Vui lòng thử lại.');
     } finally {
       setIsSyncingAI(false);
     }
@@ -329,15 +341,7 @@ const Dashboard = () => {
       }
     } catch (err) {
       console.error(err);
-      toast.success(`${stockAction.label}: ${qty} chiếc — thành công! (Mô phỏng)`);
-      setRestockItem(null);
-
-      // Manually adjust the local alerts to give positive instant feedback
-      setInventoryAlerts(prev => prev.filter(x => x.productId !== restockItem.productId));
-      setSummary(prev => ({
-        ...prev,
-        lowStockItemsCount: Math.max(0, prev.lowStockItemsCount - 1)
-      }));
+      toast.error('Không thể cập nhật tồn kho. Vui lòng thử lại.');
     } finally {
       setSubmittingRestock(false);
     }
@@ -359,7 +363,10 @@ const Dashboard = () => {
     const maxVal = Math.max(...revenueChartData.map(d => d.totalRevenue), 500000) * 1.1;
 
     const coords = revenueChartData.map((d, i) => {
-      const x = paddingLeft + (i / (revenueChartData.length - 1)) * chartW;
+      const x =
+        revenueChartData.length === 1
+          ? paddingLeft + chartW / 2
+          : paddingLeft + (i / (revenueChartData.length - 1)) * chartW;
       const y = height - paddingBottom - (d.totalRevenue / maxVal) * chartH;
       return { x, y, data: d };
     });
@@ -433,7 +440,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', lgGridTemplateColumns: '2fr 1fr', gap: '1.5rem', width: '100%' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(0, 1fr)', gap: '1.5rem', width: '100%' }}>
         {/* Left Side: Chart & Alerts */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
@@ -484,7 +491,23 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Custom SVG Line Area Chart */}
+            {loadErrors.chart && (
+              <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--error)', fontWeight: 700 }}>
+                Không tải được biểu đồ doanh thu.
+              </p>
+            )}
+
+            {revenueChartData.length === 0 && !loading ? (
+              <div style={{
+                padding: '3rem 1rem',
+                textAlign: 'center',
+                color: 'var(--text-muted)',
+                border: '1px dashed var(--border-color)',
+                borderRadius: 'var(--radius-lg)',
+              }}>
+                <p style={{ margin: 0, fontWeight: 700 }}>Chưa có dữ liệu doanh thu trong khoảng thời gian đã chọn.</p>
+              </div>
+            ) : (
             <div style={{ position: 'relative', width: '100%', overflowX: 'auto', padding: '1rem 0' }}>
               <div style={{ minWidth: '700px', width: '100%', height: '250px' }}>
                 <svg viewBox="0 0 800 240" width="100%" height="100%" style={{ overflow: 'visible' }}>
@@ -605,6 +628,7 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
+            )}
           </div>
 
           {/* Low Stock Alerts */}
@@ -631,7 +655,12 @@ const Dashboard = () => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {inventoryAlerts.length === 0 ? (
+              {loadErrors.alerts && (
+                <p style={{ margin: '0 0 0.5rem', fontSize: '0.8rem', color: 'var(--error)', fontWeight: 700 }}>
+                  Không tải được danh sách cảnh báo tồn kho.
+                </p>
+              )}
+              {inventoryAlerts.length === 0 && !loading ? (
                 <div style={{
                   padding: '2rem',
                   textAlign: 'center',
@@ -719,7 +748,7 @@ const Dashboard = () => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', width: '100%' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Sparkles size={20} color="#f26c0d" />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>AI Playpen Console</h3>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>Trợ lý AI Chatbot</h3>
               </div>
               <span style={{
                 fontSize: '0.7rem',
@@ -730,7 +759,7 @@ const Dashboard = () => {
                 border: '1px solid var(--border-color)',
                 padding: '0.1rem 0.4rem',
                 borderRadius: '4px'
-              }}>RAG ENGINE V1</span>
+              }}>RAG</span>
             </div>
 
             {/* Chat Messages */}
@@ -856,7 +885,16 @@ const Dashboard = () => {
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {topProducts.map((prod, i) => (
+              {loadErrors.topProducts && (
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--error)', fontWeight: 700 }}>
+                  Không tải được danh sách sản phẩm bán chạy.
+                </p>
+              )}
+              {topProducts.length === 0 && !loading ? (
+                <p style={{ margin: 0, color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>
+                  Chưa có dữ liệu sản phẩm bán chạy.
+                </p>
+              ) : topProducts.map((prod, i) => (
                 <div key={prod.productId} style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -909,11 +947,20 @@ const Dashboard = () => {
           }}>
             <h3 style={{ fontSize: '1.15rem', fontWeight: '800', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Truck size={20} color="var(--primary)" />
-              Hiệu suất Giao hàng (Shipper KPI)
+              Hiệu suất giao hàng
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {shippersKpi.map((shipper) => (
+              {loadErrors.shippers && (
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--error)', fontWeight: 700 }}>
+                  Không tải được chỉ số shipper.
+                </p>
+              )}
+              {shippersKpi.length === 0 && !loading ? (
+                <p style={{ margin: 0, color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>
+                  Chưa có dữ liệu hiệu suất giao hàng.
+                </p>
+              ) : shippersKpi.map((shipper) => (
                 <div key={shipper.shipperName} style={{
                   padding: '0.85rem',
                   borderRadius: 'var(--radius-lg)',
