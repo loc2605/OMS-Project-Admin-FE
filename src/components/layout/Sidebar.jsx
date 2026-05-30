@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Users,
   ShoppingBag,
-  Settings,
   ChevronLeft,
   ChevronRight,
   Package,
@@ -21,7 +20,6 @@ const Sidebar = ({ isOpen, toggleSidebar, theme, toggleTheme }) => {
     { icon: ShoppingBag, label: 'Đơn hàng', path: '/orders' },
     { icon: Package, label: 'Sản phẩm', path: '/products' },
     { icon: Users, label: 'Khách hàng', path: '/users' },
-    { icon: Settings, label: 'Cài đặt', path: '/settings' },
   ];
 
   const handleLogout = () => {

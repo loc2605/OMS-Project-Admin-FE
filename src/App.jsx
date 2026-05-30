@@ -34,7 +34,6 @@ function App() {
           <Route path="orders" element={<OrderList />} />
           <Route path="products" element={<ProductList />} />
           <Route path="users" element={<UserList />} />
-          <Route path="settings" element={<div style={{ padding: '2rem' }}>Settings Page (Coming Soon)</div>} />
         </Route>
         
         {/* Auth Routes */}
