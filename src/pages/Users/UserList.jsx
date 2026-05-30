@@ -9,13 +9,14 @@ import {
   Check,
   UserCheck,
   Calendar,
-  Smile
+  Smile,
+  X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import customerService from '../../services/customerService';
 import Button from '../../components/common/Button';
-import { formatDate } from '../../utils/format';
+import { formatDate, formatDateOnly } from '../../utils/format';
 
 const UserList = () => {
   const [customers, setCustomers] = useState([]);
@@ -144,6 +145,28 @@ const UserList = () => {
             fontWeight: '600'
           }}
         />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--text-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0.2rem',
+              borderRadius: '50%',
+              transition: 'var(--transition)',
+              outline: 'none'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--error)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       {/* Loading state */}
@@ -267,7 +290,7 @@ const UserList = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                     <Calendar size={15} color="var(--text-muted)" />
                     <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Ngày sinh:</span>
-                    <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{formatDate(customer.dateOfBirth)}</span>
+                    <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{formatDateOnly(customer.dateOfBirth)}</span>
                   </div>
                 )}
               </div>

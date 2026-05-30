@@ -39,6 +39,28 @@ export const formatDate = (date) => {
 };
 
 /**
+ * Format date to only date (no time)
+ * @param {string|Date} date 
+ * @returns {string}
+ */
+export const formatDateOnly = (date) => {
+  if (!date) return 'N/A';
+  try {
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      return 'N/A';
+    }
+    return new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(parsedDate);
+  } catch (error) {
+    return 'N/A';
+  }
+};
+
+/**
  * Capitalize first letter
  * @param {string} str 
  * @returns {string}

@@ -14,7 +14,8 @@ import {
   Boxes,
   Tag,
   DollarSign,
-  AlertCircle
+  AlertCircle,
+  Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -24,6 +25,20 @@ import { formatCurrency } from '../../utils/format';
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filter products by search query
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
+      const q = searchQuery.toLowerCase().trim();
+      return (
+        p.name?.toLowerCase().includes(q) ||
+        p.sku?.toLowerCase().includes(q) ||
+        p.categoryName?.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q)
+      );
+    });
+  }, [products, searchQuery]);
 
   // Modals States
   const [isAddEditOpen, setIsAddEditOpen] = useState(false);
@@ -369,9 +384,60 @@ const ProductList = () => {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div style={{
+        background: 'var(--bg-card)',
+        padding: '0.75rem 1rem',
+        borderRadius: 'var(--radius-xl)',
+        border: '1px solid var(--border-color)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        boxShadow: 'var(--shadow-subtle)'
+      }}>
+        <Search size={18} color="var(--text-muted)" />
+        <input 
+          type="text" 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Tìm kiếm sản phẩm theo tên, SKU, danh mục phân loại..."
+          style={{
+            flex: 1,
+            border: 'none',
+            outline: 'none',
+            backgroundColor: 'transparent',
+            color: 'var(--text-main)',
+            fontSize: '0.95rem',
+            fontWeight: '600'
+          }}
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--text-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0.2rem',
+              borderRadius: '50%',
+              transition: 'var(--transition)',
+              outline: 'none'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--error)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+          >
+            <X size={16} />
+          </button>
+        )}
+      </div>
+
       {/* Main Table Content */}
       <div className="animate-fade-in">
-        <Table columns={columns} data={products} isLoading={loading} />
+        <Table columns={columns} data={filteredProducts} isLoading={loading} />
       </div>
 
       {/* Add / Edit Product Modal */}
