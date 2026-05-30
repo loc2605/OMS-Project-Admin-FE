@@ -7,12 +7,15 @@ import {
   RefreshCw,
   Search,
   Check,
-  UserCheck
+  UserCheck,
+  Calendar,
+  Smile
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import customerService from '../../services/customerService';
 import Button from '../../components/common/Button';
+import { formatDate } from '../../utils/format';
 
 const UserList = () => {
   const [customers, setCustomers] = useState([]);
@@ -23,6 +26,7 @@ const UserList = () => {
     setLoading(true);
     try {
       const res = await customerService.getCustomers();
+      console.log(">>> [API - Customers List] response:", res);
       if (res.success) {
         setCustomers(res.result);
       } else {
@@ -31,38 +35,40 @@ const UserList = () => {
     } catch (error) {
       console.error(error);
       toast.error("Không thể kết nối API. Hiển thị dữ liệu giả định.");
-      // Fallback mocks matching user spec structure
+      // Fallback mocks matching the live API response structure
       setCustomers([
         {
-          id: "1162a106-567c-11f1-8df2-8ee8a4861b3a",
-          fullname: "Nguyễn Văn A",
-          email: "customerA@gmail.com",
-          phoneNumber: "0987654321",
+          id: "ef0702fd-6a9f-466e-b7c8-8b6fe756acf9",
+          accountId: "36b7777c-caa6-4474-8e09-6960b1618f52",
+          fullname: "Phạm Thanh Tùng",
+          phone: "0339864433",
+          gender: "MALE",
+          dateOfBirth: "1998-06-20",
+          avatarUrl: "",
           addresses: [
             {
               id: "addr-1",
-              street: "123 Đường Lê Lợi",
-              city: "Hồ Chí Minh",
+              street: "139 Ly Chinh Thang",
+              ward: "Phường Xuân Hòa",
+              city: "Thành phố Hồ Chí Minh",
               isDefault: true
-            },
-            {
-              id: "addr-2",
-              street: "456 Đường Nguyễn Huệ",
-              city: "Hồ Chí Minh",
-              isDefault: false
             }
           ]
         },
         {
-          id: "1162a106-567c-11f1-8df2-8ee8a4861b3b",
-          fullname: "Trần Thị B",
-          email: "customerB@gmail.com",
-          phoneNumber: "0912345678",
+          id: "576f828d-2e47-4879-bd86-61e10d145bec9",
+          accountId: "36b7777c-caa6-4474-8e09-6960b1618f53",
+          fullname: "Hữu Lộc",
+          phone: "0866123456",
+          gender: "MALE",
+          dateOfBirth: "1995-10-12",
+          avatarUrl: "",
           addresses: [
             {
-              id: "addr-3",
-              street: "789 Đường Hùng Vương",
-              city: "Đà Nẵng",
+              id: "addr-2",
+              street: "123 Ngọc Hảo",
+              ward: "",
+              city: "Thành phố Hà Nội",
               isDefault: true
             }
           ]
@@ -77,13 +83,14 @@ const UserList = () => {
     loadCustomers();
   }, []);
 
-  // Filter customers by name or email or phone
+  // Filter customers by name or email or phone or accountId
   const filteredCustomers = customers.filter(c => {
     const q = searchQuery.toLowerCase();
     return (
       c.fullname?.toLowerCase().includes(q) ||
       c.email?.toLowerCase().includes(q) ||
-      c.phoneNumber?.includes(q)
+      c.phone?.includes(q) ||
+      c.id?.toLowerCase().includes(q)
     );
   });
 
@@ -178,48 +185,91 @@ const UserList = () => {
                 boxShadow: 'var(--shadow-subtle)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '1rem'
+                gap: '1rem',
+                position: 'relative',
+                overflow: 'hidden'
               }}
             >
               {/* Profile Top Row */}
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                <div style={{
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #f26c0d 0%, #ea580c 100%)',
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: '800',
-                  fontSize: '1.25rem',
-                  boxShadow: '0 4px 10px -2px rgba(242, 108, 13, 0.3)'
-                }}>
-                  {getInitials(customer.fullname)}
-                </div>
+                {customer.avatarUrl ? (
+                  <img 
+                    src={customer.avatarUrl} 
+                    alt={customer.fullname} 
+                    style={{
+                      width: '52px',
+                      height: '52px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '2px solid var(--primary)',
+                      boxShadow: '0 4px 10px -2px rgba(242, 108, 13, 0.3)'
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '52px',
+                    height: '52px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #f26c0d 0%, #ea580c 100%)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: '800',
+                    fontSize: '1.25rem',
+                    boxShadow: '0 4px 10px -2px rgba(242, 108, 13, 0.3)'
+                  }}>
+                    {getInitials(customer.fullname)}
+                  </div>
+                )}
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: '800', margin: 0, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: '850', margin: 0, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     {customer.fullname}
                     <UserCheck size={16} color="var(--success)" />
                   </h3>
-                  <code style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '600' }}>ID: {customer.id}</code>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', marginTop: '0.15rem' }}>
+                    <code style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                      ID: {customer.accountId || customer.id}
+                    </code>
+                  </div>
                 </div>
               </div>
 
               {/* Profile Body Fields */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '0.75rem 0' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '0.85rem 0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                   <Mail size={15} color="var(--text-muted)" />
-                  <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '60px' }}>Email:</span>
-                  <a href={`mailto:${customer.email}`} style={{ color: 'var(--primary)', fontWeight: '700' }}>{customer.email}</a>
+                  <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Email:</span>
+                  {customer.email ? (
+                    <a href={`mailto:${customer.email}`} style={{ color: 'var(--primary)', fontWeight: '700' }}>{customer.email}</a>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: '500' }}>Chưa cập nhật</span>
+                  )}
                 </div>
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                   <Phone size={15} color="var(--text-muted)" />
-                  <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '60px' }}>Hotline:</span>
-                  <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{customer.phoneNumber || 'Không có số'}</span>
+                  <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Hotline:</span>
+                  <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{customer.phone || 'Không có số'}</span>
                 </div>
+
+                {customer.gender && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                    <Smile size={15} color="var(--text-muted)" />
+                    <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Giới tính:</span>
+                    <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>
+                      {customer.gender === 'MALE' ? 'Nam' : customer.gender === 'FEMALE' ? 'Nữ' : customer.gender}
+                    </span>
+                  </div>
+                )}
+
+                {customer.dateOfBirth && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                    <Calendar size={15} color="var(--text-muted)" />
+                    <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Ngày sinh:</span>
+                    <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{formatDate(customer.dateOfBirth)}</span>
+                  </div>
+                )}
               </div>
 
               {/* Address List inside Card */}
@@ -242,8 +292,8 @@ const UserList = () => {
                         fontSize: '0.8rem',
                         position: 'relative'
                       }}>
-                        <p style={{ margin: 0, fontWeight: '700', color: 'var(--text-main)', paddingRight: addr.isDefault ? '60px' : '0' }}>
-                          {addr.street}, {addr.city}
+                        <p style={{ margin: 0, fontWeight: '700', color: 'var(--text-main)', paddingRight: addr.isDefault ? '60px' : '0', lineHeight: '1.4' }}>
+                          {addr.street}{addr.ward ? `, ${addr.ward}` : ''}{addr.city ? `, ${addr.city}` : ''}
                         </p>
                         {addr.isDefault && (
                           <span style={{
@@ -274,6 +324,13 @@ const UserList = () => {
           ))}
         </div>
       )}
+
+      {/* Embedded keyframe spin style */}
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
 
     </div>
   );

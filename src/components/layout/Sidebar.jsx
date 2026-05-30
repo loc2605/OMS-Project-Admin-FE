@@ -83,82 +83,7 @@ const Sidebar = ({ isOpen, toggleSidebar, theme, toggleTheme }) => {
         )}
       </div>
 
-      {/* Top Utility Row (Light/Dark Mode and Notifications) */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '0.75rem', 
-        justifyContent: isOpen ? 'flex-start' : 'center',
-        padding: '0 0.5rem',
-        marginBottom: '2rem', // Spacing before navigation links
-        borderBottom: '1px solid var(--border-color)',
-        paddingBottom: '1rem' // Subtle divider line to look premium
-      }}>
-        {/* Dark/Light mode Toggle */}
-        <button 
-          onClick={toggleTheme}
-          style={{ 
-            width: '36px',
-            height: '36px',
-            borderRadius: '50%', 
-            color: 'var(--text-muted)',
-            border: '1px solid var(--border-color)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'var(--bg-card)',
-            cursor: 'pointer',
-            transition: 'var(--transition)',
-            flexShrink: 0
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--primary)';
-            e.currentTarget.style.color = 'var(--primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-color)';
-            e.currentTarget.style.color = 'var(--text-muted)';
-          }}
-        >
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
-
-        {/* Notifications */}
-        <div style={{ position: 'relative', cursor: 'pointer', flexShrink: 0 }}>
-          <div style={{ 
-            width: '36px',
-            height: '36px',
-            borderRadius: '50%', 
-            color: 'var(--text-muted)',
-            border: '1px solid var(--border-color)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'var(--bg-card)',
-            transition: 'var(--transition)'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--primary)';
-            e.currentTarget.style.color = 'var(--primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-color)';
-            e.currentTarget.style.color = 'var(--text-muted)';
-          }}
-          >
-            <Bell size={18} />
-          </div>
-          <div style={{ 
-            position: 'absolute', 
-            top: '8px', 
-            right: '8px', 
-            width: '6px', 
-            height: '6px', 
-            background: 'var(--primary)', 
-            borderRadius: '50%',
-            border: '1.5px solid var(--bg-sidebar)'
-          }} />
-        </div>
-      </div>
+    <div style={{ marginBottom: '1.5rem' }} />
 
       {/* Navigation Menu */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
@@ -216,7 +141,46 @@ const Sidebar = ({ isOpen, toggleSidebar, theme, toggleTheme }) => {
       </nav>
 
       {/* Bottom Actions */}
-      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {/* Theme Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            padding: '0.875rem 1rem',
+            borderRadius: 'var(--radius-lg)',
+            color: 'var(--text-muted)',
+            fontWeight: '600',
+            transition: 'var(--transition)',
+            width: '100%',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.02)';
+            e.currentTarget.style.color = 'var(--text-main)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = 'var(--text-muted)';
+          }}
+        >
+          {theme === 'dark' ? (
+            <>
+              <Sun size={22} style={{ flexShrink: 0 }} />
+              {isOpen && <span>Chế độ sáng</span>}
+            </>
+          ) : (
+            <>
+              <Moon size={22} style={{ flexShrink: 0 }} />
+              {isOpen && <span>Chế độ tối</span>}
+            </>
+          )}
+        </button>
+
         {/* Logout Button */}
         <button
           onClick={handleLogout}

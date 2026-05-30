@@ -4,10 +4,14 @@
  * @returns {string}
  */
 export const formatCurrency = (amount) => {
+  const num = Number(amount);
+  if (amount === null || amount === undefined || isNaN(num)) {
+    return '0 ₫';
+  }
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
-  }).format(amount);
+  }).format(num);
 };
 
 /**
@@ -16,13 +20,22 @@ export const formatCurrency = (amount) => {
  * @returns {string}
  */
 export const formatDate = (date) => {
-  return new Intl.DateTimeFormat('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(date));
+  if (!date) return 'N/A';
+  try {
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      return 'N/A';
+    }
+    return new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(parsedDate);
+  } catch (error) {
+    return 'N/A';
+  }
 };
 
 /**

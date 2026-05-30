@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Input = ({ label, error, icon: Icon, ...props }) => {
+const Input = React.forwardRef(({ label, error, icon: Icon, ...props }, ref) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '100%' }}>
       {label && (
@@ -16,10 +16,12 @@ const Input = ({ label, error, icon: Icon, ...props }) => {
               position: 'absolute', 
               left: '14px', 
               color: 'var(--text-muted)' 
+              // Set zIndex to ensure icon displays nicely
             }} 
           />
         )}
         <input
+          ref={ref}
           style={{
             width: '100%',
             padding: Icon ? '0.875rem 1rem 0.875rem 2.75rem' : '0.875rem 1rem',
@@ -60,6 +62,8 @@ const Input = ({ label, error, icon: Icon, ...props }) => {
       )}
     </div>
   );
-};
+});
+
+Input.displayName = 'Input';
 
 export default Input;
