@@ -23,6 +23,7 @@ import {
 import { formatCurrency, formatDate } from '../../utils/format';
 import orderService from '../../services/orderService';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 const Orders = () => {
   // Data States
@@ -112,6 +113,156 @@ const Orders = () => {
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  // Export all matching list to Excel
+  const handleExportExcel = async () => {
+    toast.loading('Đang khởi tạo dữ liệu báo cáo...', { id: 'export-excel' });
+    try {
+      // Query parameters matching the current active filter states, but with a massive size to fetch all records
+      const params = {
+        page: 0,
+        size: 1000, // Large size to fetch all matching entries
+        orderId: searchId || undefined,
+        customerName: searchCustomer || undefined,
+        status: filterStatus || undefined
+      };
+
+      const response = await orderService.getAdminOrders(params);
+      if (!response || !response.success) {
+        toast.error('Không thể tải danh sách đơn hàng để xuất!', { id: 'export-excel' });
+        return;
+      }
+
+      let allOrders = response.result?.content || response.result || [];
+
+      // Client-side backup filtering in case backend ignores query parameters
+      if (searchId) {
+        allOrders = allOrders.filter(o => {
+          const oid = String(o.orderId || o.id || '').toLowerCase();
+          return oid.includes(searchId.trim().toLowerCase());
+        });
+      }
+      if (searchCustomer) {
+        allOrders = allOrders.filter(o => {
+          const receiverName = String(o.shippingAddress?.receiverName || o.customerName || '').toLowerCase();
+          const receiverPhone = String(o.shippingAddress?.receiverPhone || o.customerPhone || '').toLowerCase();
+          return receiverName.includes(searchCustomer.trim().toLowerCase()) || receiverPhone.includes(searchCustomer.trim().toLowerCase());
+        });
+      }
+      if (filterStatus) {
+        allOrders = allOrders.filter(o => {
+          const stat = String(o.status || '').toUpperCase();
+          const filter = filterStatus.toUpperCase();
+          if (filter === 'PROCESSING') {
+            return ['PROCESSING', 'SHIPPING', 'DELIVERING'].includes(stat);
+          }
+          if (filter === 'COMPLETED') {
+            return ['COMPLETED', 'COMPLETE', 'SUCCESS'].includes(stat);
+          }
+          if (filter === 'PENDING') {
+            return ['PENDING', 'UNCONFIRMED'].includes(stat);
+          }
+          if (filter === 'CANCELLED') {
+            return ['CANCELLED', 'CANCEL', 'CANCELED'].includes(stat);
+          }
+          return stat === filter;
+        });
+      }
+
+      if (allOrders.length === 0) {
+        toast.error('Không có dữ liệu đơn hàng phù hợp để xuất!', { id: 'export-excel' });
+        return;
+      }
+
+      // Format data for Excel
+      const excelData = allOrders.map((order, index) => {
+        // Determine payment status in Vietnamese
+        const paymentStatusText = order.paymentId === 'COD_CONFIRMATION' ? 'CHƯA THANH TOÁN' : 'ĐÃ THANH TOÁN';
+        
+        // Format payment method in Vietnamese
+        const paymentMethodText = order.paymentMethod === 'COD' ? 'Thanh toán COD' : 'VNPAY';
+
+        // Format status in Vietnamese
+        let statusText = 'Chờ duyệt giao';
+        const stat = String(order.status || '').toUpperCase();
+        if (['PROCESSING', 'SHIPPING', 'DELIVERING'].includes(stat)) {
+          statusText = 'Đang vận chuyển';
+        } else if (['COMPLETED', 'COMPLETE', 'SUCCESS'].includes(stat)) {
+          statusText = 'Đã hoàn thành';
+        } else if (['CANCELLED', 'CANCEL', 'CANCELED'].includes(stat)) {
+          statusText = 'Đã hủy';
+        } else if (stat === 'CONFIRMED') {
+          statusText = 'Đã xác nhận';
+        }
+
+        // Format order items into a readable string
+        const rawItems = order.orderItems || order.items || [];
+        const itemsText = rawItems.map(item => {
+          const name = item.productName || item.name || 'Sản phẩm';
+          const qty = item.quantity || item.amount || 1;
+          return `${name} (x${qty})`;
+        }).join(', ');
+
+        // Extract address information
+        const receiverName = order.shippingAddress?.receiverName || order.customerName || '';
+        const receiverPhone = order.shippingAddress?.receiverPhone || order.customerPhone || '';
+        const street = order.shippingAddress?.street || '';
+        const ward = order.shippingAddress?.ward || '';
+        const city = order.shippingAddress?.city || '';
+        const fullAddress = `${street}${ward ? `, ${ward}` : ''}${city ? `, ${city}` : ''}`;
+
+        return {
+          'STT': index + 1,
+          'Mã Đơn Hàng': order.orderId || order.id || '',
+          'Khách Hàng': receiverName,
+          'Số Điện Thoại': receiverPhone,
+          'Địa Chỉ Giao Hàng': fullAddress,
+          'Sản Phẩm': itemsText,
+          'Tổng Tiền': order.totalAmount || 0,
+          'Phương Thức': paymentMethodText,
+          'Thanh Toán': paymentStatusText,
+          'Trạng Thái Đơn Hàng': statusText,
+          'Ngày Đặt Hàng': formatDate(order.createdAt),
+          'Thông Báo Lỗi': order.errorMessage || ''
+        };
+      });
+
+      // Create worksheet
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+      // Set column widths so the sheet looks extremely beautiful and readable
+      const columnWidths = [
+        { wch: 6 },   // STT
+        { wch: 40 },  // Mã Đơn Hàng
+        { wch: 25 },  // Khách Hàng
+        { wch: 15 },  // Số Điện Thoại
+        { wch: 45 },  // Địa Chỉ Giao Hàng
+        { wch: 40 },  // Sản Phẩm
+        { wch: 15 },  // Tổng Tiền
+        { wch: 20 },  // Phương Thức
+        { wch: 20 },  // Thanh Toán
+        { wch: 20 },  // Trạng Thái Đơn Hàng
+        { wch: 20 },  // Ngày Đặt Hàng
+        { wch: 30 }   // Thông Báo Lỗi
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      // Create workbook and append worksheet
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Danh sách Đơn hàng');
+
+      // Generate file name with current date
+      const dateStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
+      const fileName = `Danh_Sach_Don_Hang_${dateStr}.xlsx`;
+
+      // Write and download workbook
+      XLSX.writeFile(workbook, fileName);
+      toast.success('Báo cáo đơn hàng đã được xuất thành công!', { id: 'export-excel' });
+    } catch (err) {
+      console.error('Error exporting excel:', err);
+      toast.error('Lỗi khi xuất file Excel!', { id: 'export-excel' });
+    }
+  };
 
   // Open Order Detail Modal
   const handleViewDetails = async (orderId) => {
@@ -357,9 +508,7 @@ const Orders = () => {
             variant="secondary"
             icon={Download}
             size="sm"
-            onClick={() => {
-              toast.success('Báo cáo đơn hàng đã được xuất thành công!');
-            }}
+            onClick={handleExportExcel}
           >
             Xuất Excel
           </Button>
