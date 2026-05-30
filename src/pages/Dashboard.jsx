@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { 
-  DollarSign, 
-  Users, 
-  ShoppingBag, 
+import {
+  DollarSign,
+  Users,
+  ShoppingBag,
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
@@ -45,11 +45,11 @@ const StatCard = ({ title, value, subtitle, icon: Icon, color, index }) => (
     }}
   >
     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-      <div style={{ 
-        width: '46px', 
-        height: '46px', 
-        borderRadius: '12px', 
-        background: color, 
+      <div style={{
+        width: '46px',
+        height: '46px',
+        borderRadius: '12px',
+        background: color,
         color: 'white',
         display: 'flex',
         alignItems: 'center',
@@ -59,18 +59,18 @@ const StatCard = ({ title, value, subtitle, icon: Icon, color, index }) => (
         <Icon size={22} />
       </div>
     </div>
-    
+
     <div>
       <h3 style={{ fontSize: '1.85rem', fontWeight: '800', margin: '0 0 0.25rem 0', color: 'var(--text-main)', letterSpacing: '-0.02em' }}>{value}</h3>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600', margin: '0 0 0.25rem 0' }}>{title}</p>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', margin: 0, opacity: 0.8 }}>{subtitle}</p>
     </div>
 
-    <div style={{ 
-      position: 'absolute', 
-      bottom: '-10px', 
-      right: '-10px', 
-      opacity: 0.03, 
+    <div style={{
+      position: 'absolute',
+      bottom: '-10px',
+      right: '-10px',
+      opacity: 0.03,
       color: 'var(--text-main)',
       transform: 'rotate(-15deg)'
     }}>
@@ -91,7 +91,7 @@ const Dashboard = () => {
   const [revenueChartData, setRevenueChartData] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
   const [shippersKpi, setShippersKpi] = useState([]);
-  
+
   // AI Playground & Bootstrap States
   const [isSyncingAI, setIsSyncingAI] = useState(false);
   const [aiMessage, setAiMessage] = useState('');
@@ -320,7 +320,7 @@ const Dashboard = () => {
       console.error(err);
       toast.success(`Đã cập nhật ${restockQuantity} sản phẩm thành công vào kho! (Simulated)`);
       setRestockItem(null);
-      
+
       // Manually adjust the local alerts to give positive instant feedback
       setInventoryAlerts(prev => prev.filter(x => x.productId !== restockItem.productId));
       setSummary(prev => ({
@@ -356,9 +356,9 @@ const Dashboard = () => {
     let linePath = `M ${coords[0].x} ${coords[0].y}`;
     for (let i = 1; i < coords.length; i++) {
       // Curved Bezier line
-      const cpX1 = coords[i-1].x + (coords[i].x - coords[i-1].x) / 2;
-      const cpY1 = coords[i-1].y;
-      const cpX2 = coords[i-1].x + (coords[i].x - coords[i-1].x) / 2;
+      const cpX1 = coords[i - 1].x + (coords[i].x - coords[i - 1].x) / 2;
+      const cpY1 = coords[i - 1].y;
+      const cpX2 = coords[i - 1].x + (coords[i].x - coords[i - 1].x) / 2;
       const cpY2 = coords[i].y;
       linePath += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${coords[i].x} ${coords[i].y}`;
     }
@@ -379,30 +379,30 @@ const Dashboard = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '3rem' }}>
-      
+
       {/* Header and Sync AI Button */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.85rem', fontWeight: '800', margin: 0 }}>Tổng quan hệ thống</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Cập nhật tình hình kinh doanh, tồn kho và trợ lý AI chatbot</p>
         </div>
-        
+
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <Button 
-            variant="secondary" 
-            icon={RefreshCw} 
-            size="sm" 
-            onClick={fetchDashboardData} 
+          <Button
+            variant="secondary"
+            icon={RefreshCw}
+            size="sm"
+            onClick={fetchDashboardData}
             isLoading={loading}
           >
             Làm mới
           </Button>
 
-          <Button 
-            variant="primary" 
-            icon={Sparkles} 
-            size="sm" 
-            onClick={handleAISync} 
+          <Button
+            variant="primary"
+            icon={Sparkles}
+            size="sm"
+            onClick={handleAISync}
             isLoading={isSyncingAI}
             style={{
               background: 'linear-gradient(135deg, #f26c0d 0%, #ea580c 100%)',
@@ -425,12 +425,12 @@ const Dashboard = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', lgGridTemplateColumns: '2fr 1fr', gap: '1.5rem', width: '100%' }}>
         {/* Left Side: Chart & Alerts */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
+
           {/* Revenue Chart Box */}
-          <div style={{ 
-            background: 'var(--bg-card)', 
-            padding: '1.5rem', 
-            borderRadius: 'var(--radius-xl)', 
+          <div style={{
+            background: 'var(--bg-card)',
+            padding: '1.5rem',
+            borderRadius: 'var(--radius-xl)',
             border: '1px solid var(--border-color)',
             boxShadow: 'var(--shadow-subtle)'
           }}>
@@ -439,17 +439,17 @@ const Dashboard = () => {
                 <BarChart2 size={20} color="var(--primary)" />
                 <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0 }}>Biểu đồ doanh thu</h3>
               </div>
-              
+
               {/* Date Filters */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                 <Calendar size={14} color="var(--text-muted)" />
-                <input 
-                  type="date" 
-                  value={startDate} 
+                <input
+                  type="date"
+                  value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   style={{
-                    padding: '0.35rem 0.5rem', 
-                    borderRadius: '8px', 
+                    padding: '0.35rem 0.5rem',
+                    borderRadius: '8px',
                     border: '1px solid var(--border-color)',
                     backgroundColor: 'var(--bg-card)',
                     color: 'var(--text-main)',
@@ -457,13 +457,13 @@ const Dashboard = () => {
                   }}
                 />
                 <span style={{ color: 'var(--text-muted)' }}>đến</span>
-                <input 
-                  type="date" 
-                  value={endDate} 
+                <input
+                  type="date"
+                  value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   style={{
-                    padding: '0.35rem 0.5rem', 
-                    borderRadius: '8px', 
+                    padding: '0.35rem 0.5rem',
+                    borderRadius: '8px',
                     border: '1px solid var(--border-color)',
                     backgroundColor: 'var(--bg-card)',
                     color: 'var(--text-main)',
@@ -493,21 +493,21 @@ const Dashboard = () => {
                     const yVal = 20 + ratio * 180;
                     return (
                       <g key={ratio}>
-                        <line 
-                          x1="50" 
-                          y1={yVal} 
-                          x2="770" 
-                          y2={yVal} 
-                          stroke="var(--border-color)" 
-                          strokeWidth="0.75" 
-                          strokeDasharray="4 4" 
+                        <line
+                          x1="50"
+                          y1={yVal}
+                          x2="770"
+                          y2={yVal}
+                          stroke="var(--border-color)"
+                          strokeWidth="0.75"
+                          strokeDasharray="4 4"
                         />
-                        <text 
-                          x="40" 
-                          y={yVal + 4} 
-                          textAnchor="end" 
-                          fill="var(--text-muted)" 
-                          fontSize="9" 
+                        <text
+                          x="40"
+                          y={yVal + 4}
+                          textAnchor="end"
+                          fill="var(--text-muted)"
+                          fontSize="9"
                           fontWeight="700"
                         >
                           {formatCurrency(maxVal * (1 - ratio))}
@@ -523,37 +523,37 @@ const Dashboard = () => {
 
                   {/* Bezier Line path */}
                   {coords.length > 0 && (
-                    <path 
-                      d={linePath} 
-                      fill="none" 
-                      stroke="url(#lineGradient)" 
-                      strokeWidth="3" 
-                      strokeLinecap="round" 
+                    <path
+                      d={linePath}
+                      fill="none"
+                      stroke="url(#lineGradient)"
+                      strokeWidth="3"
+                      strokeLinecap="round"
                     />
                   )}
 
                   {/* Data Points */}
                   {coords.map((pt, i) => (
                     <g key={i}>
-                      <circle 
-                        cx={pt.x} 
-                        cy={pt.y} 
-                        r={hoveredDataPoint === i ? "6" : "4"} 
-                        fill="var(--bg-card)" 
-                        stroke="#f26c0d" 
-                        strokeWidth="3" 
+                      <circle
+                        cx={pt.x}
+                        cy={pt.y}
+                        r={hoveredDataPoint === i ? "6" : "4"}
+                        fill="var(--bg-card)"
+                        stroke="#f26c0d"
+                        strokeWidth="3"
                         style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}
                         onMouseEnter={() => setHoveredDataPoint(i)}
                         onMouseLeave={() => setHoveredDataPoint(null)}
                       />
-                      
+
                       {/* X axis labels */}
-                      <text 
-                        x={pt.x} 
-                        y="225" 
-                        textAnchor="middle" 
-                        fill="var(--text-muted)" 
-                        fontSize="9.5" 
+                      <text
+                        x={pt.x}
+                        y="225"
+                        textAnchor="middle"
+                        fill="var(--text-muted)"
+                        fontSize="9.5"
                         fontWeight="700"
                       >
                         {pt.data.statDate.split('-').slice(1).reverse().join('/')}
@@ -597,23 +597,23 @@ const Dashboard = () => {
           </div>
 
           {/* Low Stock Alerts */}
-          <div style={{ 
-            background: 'var(--bg-card)', 
-            padding: '1.5rem', 
-            borderRadius: 'var(--radius-xl)', 
+          <div style={{
+            background: 'var(--bg-card)',
+            padding: '1.5rem',
+            borderRadius: 'var(--radius-xl)',
             border: '1px solid var(--border-color)',
             boxShadow: 'var(--shadow-subtle)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <AlertTriangle size={20} color="var(--warning)" />
-                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0 }}>Cảnh báo tồn kho đỏ</h3>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0 }}>Cảnh báo tồn kho</h3>
               </div>
-              <span style={{ 
-                fontSize: '0.75rem', 
-                background: 'rgba(239, 68, 68, 0.1)', 
-                color: 'var(--error)', 
-                padding: '0.2rem 0.6rem', 
+              <span style={{
+                fontSize: '0.75rem',
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: 'var(--error)',
+                padding: '0.2rem 0.6rem',
                 borderRadius: '10px',
                 fontWeight: '800'
               }}>{inventoryAlerts.length} Cảnh báo</span>
@@ -621,10 +621,10 @@ const Dashboard = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {inventoryAlerts.length === 0 ? (
-                <div style={{ 
-                  padding: '2rem', 
-                  textAlign: 'center', 
-                  color: 'var(--text-muted)', 
+                <div style={{
+                  padding: '2rem',
+                  textAlign: 'center',
+                  color: 'var(--text-muted)',
                   border: '1px dashed var(--border-color)',
                   borderRadius: 'var(--radius-lg)'
                 }}>
@@ -633,9 +633,9 @@ const Dashboard = () => {
                 </div>
               ) : (
                 inventoryAlerts.map((alert) => (
-                  <div key={alert.id} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                  <div key={alert.id} style={{
+                    display: 'flex',
+                    alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '1rem',
                     borderRadius: 'var(--radius-lg)',
@@ -646,9 +646,9 @@ const Dashboard = () => {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '240px' }}>
                       {alert.product?.imageUrl?.[0] ? (
-                        <img 
-                          src={alert.product.imageUrl[0]} 
-                          alt={alert.product.name} 
+                        <img
+                          src={alert.product.imageUrl[0]}
+                          alt={alert.product.name}
                           style={{ width: '44px', height: '44px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color)' }}
                         />
                       ) : (
@@ -669,10 +669,10 @@ const Dashboard = () => {
                       </div>
                     </div>
 
-                    <Button 
-                      variant="primary" 
-                      size="sm" 
-                      icon={Plus} 
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      icon={Plus}
                       onClick={() => setRestockItem(alert)}
                       style={{ fontSize: '0.8rem', padding: '0.4rem 0.9rem' }}
                     >
@@ -687,12 +687,12 @@ const Dashboard = () => {
 
         {/* Right Side: AI Playpen & Top Products & Shipper KPI */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
+
           {/* AI Helper Sandbox */}
-          <div style={{ 
-            background: 'var(--bg-card)', 
+          <div style={{
+            background: 'var(--bg-card)',
             color: 'var(--text-main)',
-            padding: '1.5rem', 
+            padding: '1.5rem',
             borderRadius: 'var(--radius-xl)',
             boxShadow: 'var(--shadow-xl)',
             border: '1px solid var(--border-color)',
@@ -706,25 +706,25 @@ const Dashboard = () => {
                 <Sparkles size={20} color="#f26c0d" />
                 <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>AI Playpen Console</h3>
               </div>
-              <span style={{ 
-                fontSize: '0.7rem', 
-                color: 'var(--text-muted)', 
-                marginLeft: 'auto', 
-                fontWeight: '800', 
-                background: 'var(--bg-main)', 
+              <span style={{
+                fontSize: '0.7rem',
+                color: 'var(--text-muted)',
+                marginLeft: 'auto',
+                fontWeight: '800',
+                background: 'var(--bg-main)',
                 border: '1px solid var(--border-color)',
-                padding: '0.1rem 0.4rem', 
-                borderRadius: '4px' 
+                padding: '0.1rem 0.4rem',
+                borderRadius: '4px'
               }}>RAG ENGINE V1</span>
             </div>
 
             {/* Chat Messages */}
-            <div style={{ 
-              flex: 1, 
-              overflowY: 'auto', 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '0.75rem', 
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
               padding: '0.5rem',
               backgroundColor: 'var(--bg-main)',
               borderRadius: 'var(--radius-lg)',
@@ -732,7 +732,7 @@ const Dashboard = () => {
               border: '1px solid var(--border-color)'
             }}>
               {aiChat.map((msg, i) => (
-                <div key={i} style={{ 
+                <div key={i} style={{
                   alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                   maxWidth: '85%',
                   background: msg.role === 'user' ? '#f26c0d' : 'var(--bg-card)',
@@ -746,16 +746,16 @@ const Dashboard = () => {
                   boxShadow: 'var(--shadow-subtle)'
                 }}>
                   <p style={{ margin: 0, fontWeight: '600', lineHeight: 1.4 }}>{msg.content}</p>
-                  
+
                   {/* Recommended Suggestions */}
                   {msg.suggestions && msg.suggestions.length > 0 && (
-                    <div style={{ 
-                      marginTop: '0.5rem', 
-                      background: 'var(--bg-main)', 
-                      padding: '0.5rem', 
-                      borderRadius: '8px', 
-                      display: 'flex', 
-                      flexDirection: 'column', 
+                    <div style={{
+                      marginTop: '0.5rem',
+                      background: 'var(--bg-main)',
+                      padding: '0.5rem',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      flexDirection: 'column',
                       gap: '0.35rem',
                       border: '1px solid var(--border-color)'
                     }}>
@@ -771,15 +771,15 @@ const Dashboard = () => {
                 </div>
               ))}
               {isAiLoading && (
-                <div style={{ 
-                  alignSelf: 'flex-start', 
-                  background: 'var(--bg-card)', 
+                <div style={{
+                  alignSelf: 'flex-start',
+                  background: 'var(--bg-card)',
                   border: '1px solid var(--border-color)',
-                  padding: '0.65rem 0.85rem', 
-                  borderRadius: '12px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.5rem' 
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
                 }}>
                   <span className="loader" style={{ width: '12px', height: '12px', border: '2px solid #f26c0d', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
                   <span style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: '700', color: 'var(--text-main)' }}>AI đang tìm câu trả lời...</span>
@@ -788,9 +788,9 @@ const Dashboard = () => {
             </div>
 
             <form onSubmit={handleSendAiMessage} style={{ display: 'flex', gap: '0.5rem' }}>
-              <input 
-                type="text" 
-                value={aiMessage} 
+              <input
+                type="text"
+                value={aiMessage}
                 onChange={(e) => setAiMessage(e.target.value)}
                 placeholder="Hỏi AI Chatbot mua sắm..."
                 disabled={isAiLoading}
@@ -806,8 +806,8 @@ const Dashboard = () => {
                   fontWeight: '600'
                 }}
               />
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isAiLoading}
                 style={{
                   width: '42px',
@@ -828,10 +828,10 @@ const Dashboard = () => {
           </div>
 
           {/* Top Selling Products */}
-          <div style={{ 
-            background: 'var(--bg-card)', 
-            padding: '1.5rem', 
-            borderRadius: 'var(--radius-xl)', 
+          <div style={{
+            background: 'var(--bg-card)',
+            padding: '1.5rem',
+            borderRadius: 'var(--radius-xl)',
             border: '1px solid var(--border-color)',
             boxShadow: 'var(--shadow-subtle)'
           }}>
@@ -842,22 +842,22 @@ const Dashboard = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {topProducts.map((prod, i) => (
-                <div key={prod.productId} style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <div key={prod.productId} style={{
+                  display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'space-between',
                   paddingBottom: '0.75rem',
                   borderBottom: i !== topProducts.length - 1 ? '1px solid var(--border-color)' : 'none'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ 
-                      width: '40px', 
-                      height: '40px', 
-                      borderRadius: '8px', 
-                      background: 'rgba(242, 108, 13, 0.1)', 
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '8px',
+                      background: 'rgba(242, 108, 13, 0.1)',
                       color: 'var(--primary)',
-                      display: 'flex', 
-                      alignItems: 'center', 
+                      display: 'flex',
+                      alignItems: 'center',
                       justifyContent: 'center',
                       fontWeight: '800',
                       fontSize: '0.9rem'
@@ -885,10 +885,10 @@ const Dashboard = () => {
           </div>
 
           {/* Shippers KPI Section */}
-          <div style={{ 
-            background: 'var(--bg-card)', 
-            padding: '1.5rem', 
-            borderRadius: 'var(--radius-xl)', 
+          <div style={{
+            background: 'var(--bg-card)',
+            padding: '1.5rem',
+            borderRadius: 'var(--radius-xl)',
             border: '1px solid var(--border-color)',
             boxShadow: 'var(--shadow-subtle)'
           }}>
@@ -899,9 +899,9 @@ const Dashboard = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {shippersKpi.map((shipper) => (
-                <div key={shipper.shipperName} style={{ 
-                  padding: '0.85rem', 
-                  borderRadius: 'var(--radius-lg)', 
+                <div key={shipper.shipperName} style={{
+                  padding: '0.85rem',
+                  borderRadius: 'var(--radius-lg)',
                   border: '1px solid var(--border-color)',
                   background: 'var(--bg-light)'
                 }}>
@@ -910,18 +910,18 @@ const Dashboard = () => {
                       <p style={{ fontWeight: '800', fontSize: '0.9rem', margin: 0 }}>{shipper.shipperName}</p>
                       <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>SĐT: {shipper.shipperPhone}</p>
                     </div>
-                    <span style={{ 
-                      fontSize: '0.75rem', 
-                      background: shipper.successRate >= 95 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(245, 158, 11, 0.1)', 
-                      color: shipper.successRate >= 95 ? 'var(--success)' : 'var(--warning)', 
-                      padding: '0.15rem 0.5rem', 
+                    <span style={{
+                      fontSize: '0.75rem',
+                      background: shipper.successRate >= 95 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                      color: shipper.successRate >= 95 ? 'var(--success)' : 'var(--warning)',
+                      padding: '0.15rem 0.5rem',
                       borderRadius: '10px',
                       fontWeight: '800'
                     }}>
                       Tỉ lệ: {shipper.successRate}%
                     </span>
                   </div>
-                  
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>
                     <span>Đơn giao hỏng: {shipper.failedDeliveries}</span>
                     <span>T.gian trung bình: <strong style={{ color: 'var(--text-main)' }}>{shipper.averageDeliveryTimeHours} giờ</strong></span>
@@ -949,7 +949,7 @@ const Dashboard = () => {
               zIndex: 1000,
               padding: '1rem'
             }}>
-              <motion.div 
+              <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
@@ -979,8 +979,8 @@ const Dashboard = () => {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                     <label style={{ fontSize: '0.875rem', fontWeight: '700' }}>Loại điều chỉnh</label>
-                    <select 
-                      value={restockType} 
+                    <select
+                      value={restockType}
                       onChange={(e) => setRestockType(e.target.value)}
                       style={{
                         padding: '0.875rem 1rem',
@@ -1000,7 +1000,7 @@ const Dashboard = () => {
                     </select>
                   </div>
 
-                  <Input 
+                  <Input
                     label="Số lượng"
                     type="number"
                     min="1"
@@ -1010,18 +1010,18 @@ const Dashboard = () => {
                   />
 
                   <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                    <Button 
-                      type="button" 
-                      variant="secondary" 
-                      onClick={() => setRestockItem(null)} 
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setRestockItem(null)}
                       style={{ flex: 1 }}
                     >
                       Hủy bỏ
                     </Button>
-                    
-                    <Button 
-                      type="submit" 
-                      variant="primary" 
+
+                    <Button
+                      type="submit"
+                      variant="primary"
                       isLoading={submittingRestock}
                       style={{ flex: 1 }}
                     >
@@ -1037,7 +1037,8 @@ const Dashboard = () => {
       )}
 
       {/* Global CSS spinner rule helper */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }

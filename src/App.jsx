@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <Router>
-      <Toaster position="top-right" expand={false} richColors />
+      <Toaster position="top-right" expand={false} richColors duration={3000} />
       <Routes>
         <Route 
           path="/" 

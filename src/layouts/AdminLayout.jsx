@@ -30,13 +30,12 @@ const AdminLayout = () => {
         transition: 'all 0.3s ease'
       }}>
         <main style={{ 
-          flex: 1, 
-          padding: '1.5rem 2rem', // Generous spacing for premium styling
+          flex: 1,
           overflowY: 'auto',
           background: 'var(--bg-main)',
           height: '100vh'
         }}>
-          <div className="animate-fade-in" style={{ maxWidth: '1600px', margin: '0 auto', height: '100%' }}>
+          <div className="animate-fade-in" style={{ maxWidth: '1600px', margin: '0 auto', padding: '1.5rem 2rem', minHeight: '100%' }}>
             <Outlet />
           </div>
         </main>

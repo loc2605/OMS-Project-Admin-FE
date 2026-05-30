@@ -19,6 +19,11 @@ const Table = ({ columns, data, isLoading }) => {
     state: {
       sorting,
     },
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

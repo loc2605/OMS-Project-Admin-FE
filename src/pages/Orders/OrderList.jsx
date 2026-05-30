@@ -38,7 +38,7 @@ const Orders = () => {
 
   // Pagination States (Managed by React Table inside Table.jsx, but we also track page in API queries)
   const [page, setPage] = useState(0);
-  const [size] = useState(10);
+  const [size] = useState(100);
 
   // Selected Order for Details Modal
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -50,7 +50,7 @@ const Orders = () => {
     setLoading(true);
     try {
       const params = {
-        page,
+        page: 0,
         size,
         orderId: searchId || undefined,
         customerName: searchCustomer || undefined,
@@ -108,7 +108,7 @@ const Orders = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, size, searchId, searchCustomer, filterStatus]);
+  }, [size, searchId, searchCustomer, filterStatus]);
 
   useEffect(() => {
     fetchOrders();
@@ -178,7 +178,7 @@ const Orders = () => {
       const excelData = allOrders.map((order, index) => {
         // Determine payment status in Vietnamese
         const paymentStatusText = order.paymentId === 'COD_CONFIRMATION' ? 'CHƯA THANH TOÁN' : 'ĐÃ THANH TOÁN';
-        
+
         // Format payment method in Vietnamese
         const paymentMethodText = order.paymentMethod === 'COD' ? 'Thanh toán COD' : 'VNPAY';
 
@@ -321,6 +321,8 @@ const Orders = () => {
         return { text: 'Đang vận chuyển', color: '#f26c0d', bg: 'rgba(242, 108, 13, 0.1)', icon: Truck };
       case 'PENDING':
         return { text: 'Chờ duyệt giao', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', icon: Clock };
+      case 'PAYMENT_PENDING':
+        return { text: 'Chờ thanh toán', color: '#a855f7', bg: 'rgba(168, 85, 247, 0.1)', icon: Clock };
       case 'CONFIRMED':
         return { text: 'Đã xác nhận', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)', icon: CheckCircle };
       case 'CANCELLED':
@@ -515,13 +517,18 @@ const Orders = () => {
         </div>
       </div>
 
-      {/* Advanced Filter Box */}
+      {/* Advanced Filter Box - Sticky */}
       <div style={{
+        position: 'sticky',
+        top: '-1.5rem',
+        zIndex: 10,
         background: 'var(--bg-card)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         border: '1px solid var(--border-color)',
         borderRadius: 'var(--radius-xl)',
         padding: '1.25rem',
-        boxShadow: 'var(--shadow-subtle)',
+        boxShadow: 'var(--shadow-md)',
         display: 'flex',
         flexWrap: 'wrap',
         gap: '1rem',
@@ -584,8 +591,8 @@ const Orders = () => {
             <Button
               variant="secondary"
               size="md"
-              style={{ 
-                padding: '0.85rem 1.25rem', 
+              style={{
+                padding: '0.85rem 1.25rem',
                 borderRadius: 'var(--radius-lg)',
                 backgroundColor: 'rgba(239, 68, 68, 0.08)',
                 color: '#ef4444',
