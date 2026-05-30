@@ -14,13 +14,14 @@ import {
   Boxes,
   Tag,
   DollarSign,
-  AlertCircle,
   Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import productService from '../../services/productService';
 import { formatCurrency } from '../../utils/format';
+import { getStockAction, getStockApiType } from '../../constants/stockActions';
+import StockAdjustForm from '../../components/inventory/StockAdjustForm';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -58,7 +59,7 @@ const ProductList = () => {
   const [loadingInventory, setLoadingInventory] = useState(false);
   const [stockForm, setStockForm] = useState({
     quantity: 10,
-    type: 'ADD' // ADD, REDUCE, RESERVE, RELEASE
+    action: 'IMPORT',
   });
   const [submittingStock, setSubmittingStock] = useState(false);
 
@@ -196,7 +197,7 @@ const ProductList = () => {
     setIsStockOpen(true);
     setLoadingInventory(true);
     setInventoryDetails(null);
-    setStockForm({ quantity: 10, type: 'ADD' });
+    setStockForm({ quantity: 10, action: 'IMPORT' });
 
     try {
       const res = await productService.getInventory(product.id);
@@ -224,30 +225,35 @@ const ProductList = () => {
   const handleStockSubmit = async (e) => {
     e.preventDefault();
     if (!stockProduct) return;
+
+    const stockAction = getStockAction(stockForm.action);
+    const qty = Number(stockForm.quantity);
+    if (!qty || qty < 1) {
+      toast.error('Vui lòng nhập số lượng hợp lệ.');
+      return;
+    }
+    if (stockAction.confirmMessage && !window.confirm(stockAction.confirmMessage)) return;
+
+    const apiType = getStockApiType(stockForm.action);
     setSubmittingStock(true);
 
     try {
-      const res = await productService.updateInventory(
-        stockProduct.id,
-        stockForm.quantity,
-        stockForm.type
-      );
+      const res = await productService.updateInventory(stockProduct.id, qty, apiType);
       if (res.success) {
-        toast.success(`Cập nhật tồn kho thành công!`);
+        toast.success(`${stockAction.label} thành công!`);
         setIsStockOpen(false);
         loadProducts();
       }
     } catch (error) {
       console.error(error);
-      toast.success(`Đã cập nhật ${stockForm.quantity} chiếc (${stockForm.type}) thành công! (Simulated)`);
+      toast.success(`${stockAction.label}: ${qty} chiếc — thành công! (Mô phỏng)`);
       setIsStockOpen(false);
-      
-      // Manually calculate simulated stock quantities in table
+
       setProducts(prev => prev.map(p => {
         if (p.id === stockProduct.id) {
           let updatedQty = p.stockQuantity || 0;
-          if (stockForm.type === 'ADD') updatedQty += Number(stockForm.quantity);
-          if (stockForm.type === 'REDUCE') updatedQty = Math.max(0, updatedQty - Number(stockForm.quantity));
+          if (apiType === 'ADD') updatedQty += qty;
+          else updatedQty = Math.max(0, updatedQty - qty);
           return { ...p, stockQuantity: updatedQty };
         }
         return p;
@@ -334,7 +340,7 @@ const ProductList = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            title="Quản lý tồn kho"
+            title="Điều chỉnh tồn kho"
             onClick={() => openStockModal(info.row.original)}
             style={{ padding: '0.4rem', color: 'var(--warning)' }}
           >
@@ -600,7 +606,7 @@ const ProductList = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
                   <h3 style={{ margin: 0, fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Boxes size={20} color="var(--primary)" />
-                    Quản lý tồn kho chi tiết
+                    Điều chỉnh tồn kho
                   </h3>
                   <button onClick={() => setIsStockOpen(false)} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <X size={20} />
@@ -608,107 +614,24 @@ const ProductList = () => {
                 </div>
 
                 <div style={{ padding: '1.5rem' }}>
-                  {/* Product Name Header */}
                   <div style={{ background: 'var(--bg-main)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '1.25rem' }}>
                     <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '800' }}>{stockProduct.name}</h4>
                     <span style={{ fontSize: '0.75rem', fontWeight: '800', background: 'var(--bg-card)', border: '1px solid var(--border-color)', padding: '0.15rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginTop: '0.25rem' }}>
-                      SKU: {stockProduct.sku}
+                      Mã SKU: {stockProduct.sku}
                     </span>
                   </div>
 
-                  {loadingInventory ? (
-                    <div style={{ padding: '2rem 0', textAlign: 'center' }}>
-                      <span className="loader" style={{ width: '24px', height: '24px', border: '3px solid var(--primary-glow)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem', fontWeight: '700' }}>Đang tải trạng thái tồn kho...</p>
-                    </div>
-                  ) : inventoryDetails ? (
-                    <div>
-                      {/* Inventory Grid Stats */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                        <div style={{ border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                          <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '800', color: 'var(--success)' }}>{inventoryDetails.availableQuantity}</span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Khả dụng (Available)</span>
-                        </div>
-                        <div style={{ border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                          <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '800', color: 'var(--warning)' }}>{inventoryDetails.reservedQuantity}</span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Đang giữ (Reserved)</span>
-                        </div>
-                        <div style={{ border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                          <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '800', color: 'var(--primary)' }}>{inventoryDetails.totalQuantity}</span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Tổng tồn kho (Total)</span>
-                        </div>
-                        <div style={{ border: '1px solid var(--border-color)', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                          <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '800', color: 'var(--error)' }}>{inventoryDetails.lowStockThreshold}</span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Ngưỡng đỏ (Threshold)</span>
-                        </div>
-                      </div>
-
-                      {/* Stock operation form */}
-                      <form onSubmit={handleStockSubmit} style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <AlertCircle size={16} color="var(--primary)" />
-                          Thực hiện điều chỉnh kho
-                        </h4>
-                        
-                        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '0.75rem' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            <label style={{ fontSize: '0.8rem', fontWeight: '700' }}>Hành động</label>
-                            <select 
-                              value={stockForm.type} 
-                              onChange={(e) => setStockForm({...stockForm, type: e.target.value})}
-                              style={{
-                                padding: '0.75rem',
-                                borderRadius: 'var(--radius-lg)',
-                                border: '1px solid var(--border-color)',
-                                backgroundColor: 'var(--bg-card)',
-                                color: 'var(--text-main)',
-                                outline: 'none',
-                                fontSize: '0.9rem',
-                                fontWeight: '600'
-                              }}
-                            >
-                              <option value="ADD">ADD (Nhập hàng thêm)</option>
-                              <option value="REDUCE">REDUCE (Xuất kho bán)</option>
-                              <option value="RESERVE">RESERVE (Giữ hàng trước)</option>
-                              <option value="RELEASE">RELEASE (Nhả hàng đã giữ)</option>
-                            </select>
-                          </div>
-
-                          <Input 
-                            label="Số lượng"
-                            type="number"
-                            min="1"
-                            style={{ padding: '0.75rem' }}
-                            value={stockForm.quantity}
-                            onChange={(e) => setStockForm({...stockForm, quantity: e.target.value})}
-                            required
-                          />
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                          <Button 
-                            type="button" 
-                            variant="secondary" 
-                            onClick={() => setIsStockOpen(false)} 
-                            style={{ flex: 1 }}
-                          >
-                            Đóng lại
-                          </Button>
-                          
-                          <Button 
-                            type="submit" 
-                            variant="primary" 
-                            isLoading={submittingStock}
-                            style={{ flex: 1 }}
-                          >
-                            Áp dụng
-                          </Button>
-                        </div>
-                      </form>
-                    </div>
-                  ) : (
-                    <p style={{ textAlign: 'center', color: 'var(--error)', fontWeight: '700' }}>Không thể lấy thông tin chi tiết tồn kho.</p>
-                  )}
+                  <StockAdjustForm
+                    action={stockForm.action}
+                    onActionChange={(action) => setStockForm({ ...stockForm, action })}
+                    quantity={stockForm.quantity}
+                    onQuantityChange={(quantity) => setStockForm({ ...stockForm, quantity })}
+                    onSubmit={handleStockSubmit}
+                    onCancel={() => setIsStockOpen(false)}
+                    submitting={submittingStock}
+                    inventoryDetails={inventoryDetails}
+                    loading={loadingInventory}
+                  />
                 </div>
               </motion.div>
             </div>

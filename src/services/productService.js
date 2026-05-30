@@ -39,7 +39,7 @@ const productService = {
     const response = await apiClient.post('/api/v1/inventory/update', {
       productId,
       quantity: Number(quantity),
-      type // "ADD", "REDUCE", "RESERVE", "RELEASE"
+      type // "ADD" | "REDUCE"
     });
     return response.data;
   }

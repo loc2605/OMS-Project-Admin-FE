@@ -26,6 +26,8 @@ import customerService from '../services/customerService';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { formatCurrency } from '../utils/format';
+import { getStockAction, getStockApiType } from '../constants/stockActions';
+import StockAdjustForm from '../components/inventory/StockAdjustForm';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, color, index }) => (
   <motion.div
@@ -113,7 +115,7 @@ const Dashboard = () => {
   // Restock Modal State
   const [restockItem, setRestockItem] = useState(null);
   const [restockQuantity, setRestockQuantity] = useState(50);
-  const [restockType, setRestockType] = useState('ADD'); // "ADD", "REDUCE", "RESERVE", "RELEASE"
+  const [restockAction, setRestockAction] = useState('IMPORT');
   const [submittingRestock, setSubmittingRestock] = useState(false);
 
   // Chart Tooltip Hover State
@@ -300,25 +302,34 @@ const Dashboard = () => {
   const handleRestockSubmit = async (e) => {
     e.preventDefault();
     if (!restockItem) return;
+
+    const stockAction = getStockAction(restockAction);
+    const qty = Number(restockQuantity);
+    if (!qty || qty < 1) {
+      toast.error('Vui lòng nhập số lượng hợp lệ.');
+      return;
+    }
+    if (stockAction.confirmMessage && !window.confirm(stockAction.confirmMessage)) return;
+
     setSubmittingRestock(true);
 
     try {
       const res = await productService.updateInventory(
         restockItem.productId,
-        restockQuantity,
-        restockType
+        qty,
+        getStockApiType(restockAction)
       );
 
       if (res.success) {
-        toast.success(`Cập nhật tồn kho thành công: ${res.result.message || 'Thành công'}`);
+        toast.success(`${stockAction.label} thành công!`);
         setRestockItem(null);
         fetchDashboardData();
       } else {
-        toast.error("Lỗi cập nhật tồn kho");
+        toast.error('Lỗi cập nhật tồn kho');
       }
     } catch (err) {
       console.error(err);
-      toast.success(`Đã cập nhật ${restockQuantity} sản phẩm thành công vào kho! (Simulated)`);
+      toast.success(`${stockAction.label}: ${qty} chiếc — thành công! (Mô phỏng)`);
       setRestockItem(null);
 
       // Manually adjust the local alerts to give positive instant feedback
@@ -673,7 +684,11 @@ const Dashboard = () => {
                       variant="primary"
                       size="sm"
                       icon={Plus}
-                      onClick={() => setRestockItem(alert)}
+                      onClick={() => {
+                        setRestockItem(alert);
+                        setRestockAction('IMPORT');
+                        setRestockQuantity(50);
+                      }}
                       style={{ fontSize: '0.8rem', padding: '0.4rem 0.9rem' }}
                     >
                       Nhập hàng nhanh
@@ -964,71 +979,32 @@ const Dashboard = () => {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.15rem' }}>Cập nhật kho hàng nhanh</h3>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem' }}>Điều chỉnh tồn kho</h3>
                   <button onClick={() => setRestockItem(null)} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <X size={20} />
                   </button>
                 </div>
 
-                <form onSubmit={handleRestockSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ background: 'var(--bg-light)', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                    <p style={{ fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', margin: '0 0 0.2rem 0' }}>Sản phẩm</p>
-                    <p style={{ fontWeight: '800', margin: 0, fontSize: '0.95rem' }}>{restockItem.product?.name}</p>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>SKU: {restockItem.product?.sku} | Tồn kho hiện tại: {restockItem.availableQuantity}</p>
+                <div style={{ padding: '1.5rem' }}>
+                  <div style={{ background: 'var(--bg-light)', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '1.25rem' }}>
+                    <p style={{ fontWeight: 800, margin: 0, fontSize: '0.95rem' }}>{restockItem.product?.name}</p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.25rem 0 0' }}>
+                      Mã SKU: {restockItem.product?.sku}
+                    </p>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    <label style={{ fontSize: '0.875rem', fontWeight: '700' }}>Loại điều chỉnh</label>
-                    <select
-                      value={restockType}
-                      onChange={(e) => setRestockType(e.target.value)}
-                      style={{
-                        padding: '0.875rem 1rem',
-                        borderRadius: 'var(--radius-lg)',
-                        border: '1px solid var(--border-color)',
-                        backgroundColor: 'var(--bg-card)',
-                        color: 'var(--text-main)',
-                        outline: 'none',
-                        fontSize: '0.95rem',
-                        fontWeight: '600'
-                      }}
-                    >
-                      <option value="ADD">ADD (Nhập kho thêm)</option>
-                      <option value="REDUCE">REDUCE (Xuất giảm tồn kho)</option>
-                      <option value="RESERVE">RESERVE (Tạm giữ kho hàng)</option>
-                      <option value="RELEASE">RELEASE (Hoàn kho giữ hàng)</option>
-                    </select>
-                  </div>
-
-                  <Input
-                    label="Số lượng"
-                    type="number"
-                    min="1"
-                    value={restockQuantity}
-                    onChange={(e) => setRestockQuantity(e.target.value)}
-                    required
+                  <StockAdjustForm
+                    action={restockAction}
+                    onActionChange={setRestockAction}
+                    quantity={restockQuantity}
+                    onQuantityChange={setRestockQuantity}
+                    onSubmit={handleRestockSubmit}
+                    onCancel={() => setRestockItem(null)}
+                    submitting={submittingRestock}
+                    inventoryDetails={restockItem}
+                    loading={false}
                   />
-
-                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setRestockItem(null)}
-                      style={{ flex: 1 }}
-                    >
-                      Hủy bỏ
-                    </Button>
-
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      isLoading={submittingRestock}
-                      style={{ flex: 1 }}
-                    >
-                      Xác nhận
-                    </Button>
-                  </div>
-                </form>
+                </div>
               </motion.div>
             </div>
           )}

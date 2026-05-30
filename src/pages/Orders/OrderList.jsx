@@ -502,7 +502,7 @@ const Orders = () => {
       {/* Header and Quick Stats */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.85rem', fontWeight: '800', margin: 0 }}>Quản lý Đơn hàng</h2>
+          <h2 style={{ fontSize: '1.85rem', fontWeight: '800', margin: 0 }}>Quản lý đơn hàng</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Theo dõi, tra cứu và duyệt trạng thái vận chuyển cho đơn hàng</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
