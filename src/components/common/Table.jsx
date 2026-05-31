@@ -10,7 +10,7 @@ import {
 import { ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
 import Button from './Button';
 
-const Table = ({ columns, data, isLoading }) => {
+const Table = ({ columns, data, isLoading, itemLabel = 'bản ghi' }) => {
   const [sorting, setSorting] = React.useState([]);
 
   const table = useReactTable({
@@ -103,7 +103,7 @@ const Table = ({ columns, data, isLoading }) => {
       {/* Pagination */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem' }}>
         <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-          Hiển thị {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} đến {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} trên tổng số {table.getFilteredRowModel().rows.length} bản ghi
+          Hiển thị {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} đến {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} trên tổng số {table.getFilteredRowModel().rows.length} {itemLabel}
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <Button

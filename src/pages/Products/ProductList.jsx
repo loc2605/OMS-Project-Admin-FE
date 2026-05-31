@@ -499,7 +499,7 @@ const ProductList = () => {
 
       {/* Main Table Content */}
       <div className="animate-fade-in">
-        <Table columns={columns} data={filteredProducts} isLoading={loading} />
+        <Table columns={columns} data={filteredProducts} isLoading={loading} itemLabel="sản phẩm" />
       </div>
 
       {/* Add / Edit Product Modal */}

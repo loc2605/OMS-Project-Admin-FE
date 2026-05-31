@@ -623,7 +623,7 @@ const Orders = () => {
 
       {/* Main Table Wrapper */}
       <div className="animate-fade-in">
-        <Table columns={columns} data={orders} isLoading={loading} />
+        <Table columns={columns} data={orders} isLoading={loading} itemLabel="đơn hàng" />
       </div>
 
       {/* DETAILED GLASSMORPHISM ORDER MODAL */}

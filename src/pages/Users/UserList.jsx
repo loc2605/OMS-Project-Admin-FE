@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Users, 
-  Mail, 
-  Phone, 
-  MapPin, 
+import {
+  Users,
+  Mail,
+  Phone,
+  MapPin,
   RefreshCw,
   Search,
   Check,
@@ -86,21 +86,21 @@ const UserList = () => {
       setLoading(false);
     }
   };
- 
+
   const handleToggleStatus = async (customer) => {
     const isCurrentlyBanned = customer.status === 'BANNED';
     const newStatus = isCurrentlyBanned ? 'ACTIVE' : 'BANNED';
-    const confirmMessage = isCurrentlyBanned 
+    const confirmMessage = isCurrentlyBanned
       ? `Bạn có chắc chắn muốn mở khóa tài khoản của ${customer.fullname} không?`
       : `Bạn có chắc chắn muốn khóa tài khoản của ${customer.fullname} không?`;
-      
+
     if (!window.confirm(confirmMessage)) return;
 
     try {
       const res = await customerService.updateAccountStatus(customer.accountId, newStatus);
       if (res.success) {
         toast.success(newStatus === 'BANNED' ? "Khóa tài khoản thành công!" : "Mở khóa tài khoản thành công!");
-        setCustomers(prev => prev.map(c => 
+        setCustomers(prev => prev.map(c =>
           c.accountId === customer.accountId ? { ...c, status: newStatus } : c
         ));
       } else {
@@ -109,7 +109,7 @@ const UserList = () => {
     } catch (error) {
       console.error(error);
       toast.success(newStatus === 'BANNED' ? "Khóa tài khoản thành công! (Simulated)" : "Mở khóa tài khoản thành công! (Simulated)");
-      setCustomers(prev => prev.map(c => 
+      setCustomers(prev => prev.map(c =>
         c.accountId === customer.accountId ? { ...c, status: newStatus } : c
       ));
     }
@@ -166,7 +166,7 @@ const UserList = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      
+
       {/* Header section */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
@@ -192,8 +192,8 @@ const UserList = () => {
         boxShadow: 'var(--shadow-subtle)'
       }}>
         <Search size={18} color="var(--text-muted)" />
-        <input 
-          type="text" 
+        <input
+          type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Tìm kiếm khách hàng theo tên, email hoặc số điện thoại..."
@@ -238,10 +238,10 @@ const UserList = () => {
           <p style={{ marginTop: '1rem', color: 'var(--text-muted)', fontWeight: '700', fontSize: '0.9rem' }}>Đang tải danh sách hồ sơ khách hàng...</p>
         </div>
       ) : filteredCustomers.length === 0 ? (
-        <div style={{ 
-          padding: '4rem 2rem', 
-          textAlign: 'center', 
-          border: '1px dashed var(--border-color)', 
+        <div style={{
+          padding: '4rem 2rem',
+          textAlign: 'center',
+          border: '1px dashed var(--border-color)',
           borderRadius: 'var(--radius-xl)',
           background: 'var(--bg-card)'
         }}>
@@ -251,271 +251,287 @@ const UserList = () => {
         </div>
       ) : (
         <>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
-          gap: '1.25rem'
-        }}>
-          {paginatedCustomers.map((customer, index) => (
-            <motion.div
-              key={customer.id || customer.accountId || index}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              style={{
-                background: 'var(--bg-card)',
-                borderRadius: 'var(--radius-xl)',
-                border: '1px solid var(--border-color)',
-                padding: '1.5rem',
-                boxShadow: 'var(--shadow-subtle)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
-              {/* Profile Top Row */}
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                {customer.avatarUrl ? (
-                  <img 
-                    src={customer.avatarUrl} 
-                    alt={customer.fullname} 
-                    style={{
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+            gap: '1.25rem'
+          }}>
+            {paginatedCustomers.map((customer, index) => (
+              <motion.div
+                key={customer.id || customer.accountId || index}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                style={{
+                  background: 'var(--bg-card)',
+                  borderRadius: 'var(--radius-xl)',
+                  border: '1px solid var(--border-color)',
+                  padding: '1.5rem',
+                  boxShadow: 'var(--shadow-subtle)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1rem',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                {/* Profile Top Row */}
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  {customer.avatarUrl ? (
+                    <img
+                      src={customer.avatarUrl}
+                      alt={customer.fullname}
+                      style={{
+                        width: '52px',
+                        height: '52px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: '2px solid var(--primary)',
+                        boxShadow: '0 4px 10px -2px rgba(242, 108, 13, 0.3)'
+                      }}
+                    />
+                  ) : (
+                    <div style={{
                       width: '52px',
                       height: '52px',
                       borderRadius: '50%',
-                      objectFit: 'cover',
-                      border: '2px solid var(--primary)',
+                      background: 'linear-gradient(135deg, #f26c0d 0%, #ea580c 100%)',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: '800',
+                      fontSize: '1.25rem',
                       boxShadow: '0 4px 10px -2px rgba(242, 108, 13, 0.3)'
-                    }}
-                  />
-                ) : (
-                  <div style={{
-                    width: '52px',
-                    height: '52px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #f26c0d 0%, #ea580c 100%)',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: '800',
-                    fontSize: '1.25rem',
-                    boxShadow: '0 4px 10px -2px rgba(242, 108, 13, 0.3)'
-                  }}>
-                    {getInitials(customer.fullname)}
+                    }}>
+                      {getInitials(customer.fullname)}
+                    </div>
+                  )}
+                  <div>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: '850', margin: 0, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      {customer.fullname}
+                      {customer.status === 'BANNED' ? (
+                        <span style={{
+                          fontSize: '0.65rem',
+                          fontWeight: '800',
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          color: 'var(--error)',
+                          padding: '0.1rem 0.4rem',
+                          borderRadius: '4px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.2rem'
+                        }}>
+                          <Lock size={10} /> Đã khóa
+                        </span>
+                      ) : (
+                        <span style={{
+                          fontSize: '0.65rem',
+                          fontWeight: '800',
+                          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                          color: 'var(--success)',
+                          padding: '0.1rem 0.4rem',
+                          borderRadius: '4px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.2rem'
+                        }}>
+                          <UserCheck size={10} /> Hoạt động
+                        </span>
+                      )}
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', marginTop: '0.15rem' }}>
+                      <code style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                        ID: {customer.accountId || customer.id}
+                      </code>
+                    </div>
                   </div>
-                )}
-                <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: '850', margin: 0, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                    {customer.fullname}
-                    {customer.status === 'BANNED' ? (
-                      <span style={{
-                        fontSize: '0.65rem',
-                        fontWeight: '800',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        color: 'var(--error)',
-                        padding: '0.1rem 0.4rem',
-                        borderRadius: '4px',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.2rem'
-                      }}>
-                        <Lock size={10} /> Đã khóa
-                      </span>
+                </div>
+
+                {/* Profile Body Fields */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '0.85rem 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                    <Mail size={15} color="var(--text-muted)" />
+                    <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Email:</span>
+                    {customer.email ? (
+                      <a href={`mailto:${customer.email}`} style={{ color: 'var(--primary)', fontWeight: '700' }}>{customer.email}</a>
                     ) : (
-                      <span style={{
-                        fontSize: '0.65rem',
-                        fontWeight: '800',
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        color: 'var(--success)',
-                        padding: '0.1rem 0.4rem',
-                        borderRadius: '4px',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.2rem'
-                      }}>
-                        <UserCheck size={10} /> Hoạt động
-                      </span>
+                      <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: '500' }}>Chưa cập nhật</span>
                     )}
-                  </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', marginTop: '0.15rem' }}>
-                    <code style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-                      ID: {customer.accountId || customer.id}
-                    </code>
                   </div>
-                </div>
-              </div>
 
-              {/* Profile Body Fields */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '0.85rem 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                  <Mail size={15} color="var(--text-muted)" />
-                  <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Email:</span>
-                  {customer.email ? (
-                    <a href={`mailto:${customer.email}`} style={{ color: 'var(--primary)', fontWeight: '700' }}>{customer.email}</a>
-                  ) : (
-                    <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: '500' }}>Chưa cập nhật</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                    <Phone size={15} color="var(--text-muted)" />
+                    <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Hotline:</span>
+                    <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{customer.phone || 'Không có số'}</span>
+                  </div>
+
+                  {customer.gender && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                      <Smile size={15} color="var(--text-muted)" />
+                      <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Giới tính:</span>
+                      <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>
+                        {customer.gender === 'MALE' ? 'Nam' : customer.gender === 'FEMALE' ? 'Nữ' : customer.gender}
+                      </span>
+                    </div>
+                  )}
+
+                  {customer.dateOfBirth && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                      <Calendar size={15} color="var(--text-muted)" />
+                      <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Ngày sinh:</span>
+                      <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{formatDateOnly(customer.dateOfBirth)}</span>
+                    </div>
                   )}
                 </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                  <Phone size={15} color="var(--text-muted)" />
-                  <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Hotline:</span>
-                  <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{customer.phone || 'Không có số'}</span>
+
+                {/* Address List inside Card */}
+                <div>
+                  <p style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <MapPin size={14} />
+                    Sổ Địa Chỉ Nhận Hàng ({customer.addresses?.length || 0})
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {!customer.addresses || customer.addresses.length === 0 ? (
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Khách hàng chưa đăng ký địa chỉ giao nhận.</p>
+                    ) : (
+                      customer.addresses.map((addr, addrIdx) => (
+                        <div key={addr.id || `addr-${addrIdx}`} style={{
+                          padding: '0.5rem 0.75rem',
+                          borderRadius: '6px',
+                          background: 'var(--bg-light)',
+                          border: '1px solid var(--border-color)',
+                          fontSize: '0.8rem',
+                          position: 'relative'
+                        }}>
+                          <p style={{ margin: 0, fontWeight: '700', color: 'var(--text-main)', paddingRight: addr.isDefault ? '60px' : '0', lineHeight: '1.4' }}>
+                            {addr.street}{addr.ward ? `, ${addr.ward}` : ''}{addr.city ? `, ${addr.city}` : ''}
+                          </p>
+                          {addr.isDefault && (
+                            <span style={{
+                              position: 'absolute',
+                              top: '50%',
+                              right: '8px',
+                              transform: 'translateY(-50%)',
+                              fontSize: '0.65rem',
+                              fontWeight: '800',
+                              background: 'rgba(34, 197, 94, 0.1)',
+                              color: 'var(--success)',
+                              padding: '0.1rem 0.4rem',
+                              borderRadius: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.15rem'
+                            }}>
+                              <Check size={8} strokeWidth={4} /> Mặc định
+                            </span>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
 
-                {customer.gender && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                    <Smile size={15} color="var(--text-muted)" />
-                    <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Giới tính:</span>
-                    <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>
-                      {customer.gender === 'MALE' ? 'Nam' : customer.gender === 'FEMALE' ? 'Nữ' : customer.gender}
-                    </span>
-                  </div>
-                )}
-
-                {customer.dateOfBirth && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                    <Calendar size={15} color="var(--text-muted)" />
-                    <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Ngày sinh:</span>
-                    <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{formatDateOnly(customer.dateOfBirth)}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Address List inside Card */}
-              <div>
-                <p style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <MapPin size={14} />
-                  Sổ Địa Chỉ Nhận Hàng ({customer.addresses?.length || 0})
-                </p>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {!customer.addresses || customer.addresses.length === 0 ? (
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Khách hàng chưa đăng ký địa chỉ giao nhận.</p>
+                {/* Account Action Status */}
+                <div style={{ display: 'flex', marginTop: 'auto', paddingTop: '0.85rem', borderTop: '1px solid var(--border-color)' }}>
+                  {customer.status === 'BANNED' ? (
+                    <Button
+                      variant="primary"
+                      icon={Unlock}
+                      size="sm"
+                      style={{
+                        width: '100%',
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        borderColor: '#059669',
+                        boxShadow: '0 4px 12px -2px rgba(16, 185, 129, 0.2)'
+                      }}
+                      onClick={() => handleToggleStatus(customer)}
+                    >
+                      Mở khóa tài khoản
+                    </Button>
                   ) : (
-                    customer.addresses.map((addr, addrIdx) => (
-                      <div key={addr.id || `addr-${addrIdx}`} style={{ 
-                        padding: '0.5rem 0.75rem', 
-                        borderRadius: '6px', 
-                        background: 'var(--bg-light)', 
-                        border: '1px solid var(--border-color)',
-                        fontSize: '0.8rem',
-                        position: 'relative'
-                      }}>
-                        <p style={{ margin: 0, fontWeight: '700', color: 'var(--text-main)', paddingRight: addr.isDefault ? '60px' : '0', lineHeight: '1.4' }}>
-                          {addr.street}{addr.ward ? `, ${addr.ward}` : ''}{addr.city ? `, ${addr.city}` : ''}
-                        </p>
-                        {addr.isDefault && (
-                          <span style={{
-                            position: 'absolute',
-                            top: '50%',
-                            right: '8px',
-                            transform: 'translateY(-50%)',
-                            fontSize: '0.65rem',
-                            fontWeight: '800',
-                            background: 'rgba(34, 197, 94, 0.1)',
-                            color: 'var(--success)',
-                            padding: '0.1rem 0.4rem',
-                            borderRadius: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.15rem'
-                          }}>
-                            <Check size={8} strokeWidth={4} /> Mặc định
-                          </span>
-                        )}
-                      </div>
-                    ))
+                    <Button
+                      variant="secondary"
+                      icon={Lock}
+                      size="sm"
+                      style={{
+                        width: '100%',
+                        borderColor: 'var(--error)',
+                        color: 'var(--error)',
+                        background: 'transparent'
+                      }}
+                      onClick={() => handleToggleStatus(customer)}
+                    >
+                      Khóa tài khoản
+                    </Button>
                   )}
                 </div>
-              </div>
 
-              {/* Account Action Status */}
-              <div style={{ display: 'flex', marginTop: 'auto', paddingTop: '0.85rem', borderTop: '1px solid var(--border-color)' }}>
-                {customer.status === 'BANNED' ? (
-                  <Button 
-                    variant="primary" 
-                    icon={Unlock} 
-                    size="sm" 
-                    style={{ 
-                      width: '100%', 
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
-                      borderColor: '#059669',
-                      boxShadow: '0 4px 12px -2px rgba(16, 185, 129, 0.2)' 
-                    }}
-                    onClick={() => handleToggleStatus(customer)}
-                  >
-                    Mở khóa tài khoản
-                  </Button>
-                ) : (
-                  <Button 
-                    variant="secondary" 
-                    icon={Lock} 
-                    size="sm" 
-                    style={{ 
-                      width: '100%', 
-                      borderColor: 'var(--error)',
-                      color: 'var(--error)',
-                      background: 'transparent'
-                    }}
-                    onClick={() => handleToggleStatus(customer)}
-                  >
-                    Khóa tài khoản
-                  </Button>
-                )}
-              </div>
+              </motion.div>
+            ))}
+          </div>
 
-            </motion.div>
-          ))}
-        </div>
-
-        {filteredCustomers.length > CUSTOMERS_PER_PAGE && (
-          <div
-            style={{
+          {filteredCustomers.length > CUSTOMERS_PER_PAGE && (
+            <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '1rem',
-              padding: '1rem 1.25rem',
+              padding: '0.75rem 1.25rem',
               background: 'var(--bg-card)',
-              borderRadius: 'var(--radius-xl)',
-              border: '1px solid var(--border-color)',
-              boxShadow: 'var(--shadow-subtle)',
-            }}
-          >
-            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Hiển thị {rangeStart}–{rangeEnd} trên tổng {filteredCustomers.length} khách hàng
-              {' · '}
-              Trang {currentPage + 1}/{totalPages}
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage === 0}
-                aria-label="Trang trước"
-              >
-                <ChevronLeft size={16} />
-                Trang trước
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage >= totalPages - 1}
-                aria-label="Trang sau"
-              >
-                Trang sau
-                <ChevronRight size={16} />
-              </Button>
+              borderTop: '1px solid var(--border-color)',
+              borderRadius: '0 0 var(--radius-xl) var(--radius-xl)',
+              marginTop: '-0.25rem',
+            }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                Hiển thị {rangeStart} đến {rangeEnd} trên tổng số {filteredCustomers.length} khách hàng
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 0}
+                  aria-label="Trang trước"
+                  style={{
+                    width: '30px',
+                    height: '30px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '6px',
+                    background: currentPage === 0 ? 'transparent' : 'var(--bg-card)',
+                    color: currentPage === 0 ? 'var(--text-muted)' : 'var(--text-main)',
+                    cursor: currentPage === 0 ? 'not-allowed' : 'pointer',
+                    opacity: currentPage === 0 ? 0.4 : 1,
+                    transition: 'var(--transition)',
+                  }}
+                >
+                  <ChevronLeft size={15} />
+                </button>
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage >= totalPages - 1}
+                  aria-label="Trang sau"
+                  style={{
+                    width: '30px',
+                    height: '30px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '6px',
+                    background: currentPage >= totalPages - 1 ? 'transparent' : 'var(--bg-card)',
+                    color: currentPage >= totalPages - 1 ? 'var(--text-muted)' : 'var(--text-main)',
+                    cursor: currentPage >= totalPages - 1 ? 'not-allowed' : 'pointer',
+                    opacity: currentPage >= totalPages - 1 ? 0.4 : 1,
+                    transition: 'var(--transition)',
+                  }}
+                >
+                  <ChevronRight size={15} />
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
         </>
       )}
 
