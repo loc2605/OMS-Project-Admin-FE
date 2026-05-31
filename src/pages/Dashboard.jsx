@@ -668,13 +668,13 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Grid Layout below the Chart - spacious 2 Columns */}
+      {/* Vertical Layout below the Chart - Each component takes a full-width row */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)',
+        display: 'flex',
+        flexDirection: 'column',
         gap: '1.5rem',
         width: '100%',
-        marginTop: '1.5rem'
+        marginTop: '-0.35rem'
       }}>
 
         {/* Left Column: Sản phẩm bán chạy */}
@@ -760,10 +760,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Right Column: Stacked Alerts & Shipper KPI */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
-          {/* Column 2: Cảnh báo tồn kho */}
+        {/* Row 2: Cảnh báo tồn kho */}
           <div style={{
             background: 'var(--bg-card)',
             padding: '1.5rem',
@@ -850,7 +847,7 @@ const Dashboard = () => {
                         </div>
                       )}
                       <div>
-                        <h4 style={{ fontSize: '0.85rem', fontWeight: '800', margin: 0, maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <h4 style={{ fontSize: '0.85rem', fontWeight: '800', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {alert.product?.name || 'Sản phẩm lỗi'}
                         </h4>
                         <span style={{ fontSize: '0.7rem', color: 'var(--error)', fontWeight: '700' }}>
@@ -950,8 +947,6 @@ const Dashboard = () => {
               ))}
             </div>
           </div>
-
-        </div>
 
       </div>
 
