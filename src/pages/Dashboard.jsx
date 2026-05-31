@@ -368,9 +368,9 @@ const Dashboard = () => {
 
   // Generate SVG Coordinate points for beautiful Area Chart
   const renderSVGChartPath = () => {
-    if (revenueChartData.length === 0) return { linePath: '', areaPath: '', coords: [] };
+    if (revenueChartData.length === 0) return { linePath: '', areaPath: '', coords: [], maxVal: 0, height: 360, paddingBottom: 40, paddingTop: 20, chartH: 300 };
     const width = 800;
-    const height = 240;
+    const height = 360;
     const paddingLeft = 50;
     const paddingRight = 30;
     const paddingTop = 20;
@@ -402,10 +402,10 @@ const Dashboard = () => {
 
     const areaPath = `${linePath} L ${coords[coords.length - 1].x} ${height - paddingBottom} L ${coords[0].x} ${height - paddingBottom} Z`;
 
-    return { linePath, areaPath, coords, maxVal, height, paddingBottom };
+    return { linePath, areaPath, coords, maxVal, height, paddingBottom, paddingTop, chartH };
   };
 
-  const { linePath, areaPath, coords, maxVal } = renderSVGChartPath();
+  const { linePath, areaPath, coords, maxVal, height, paddingBottom, paddingTop, chartH } = renderSVGChartPath();
 
   const statsList = [
     { title: 'Doanh thu trong ngày', value: formatCurrency(summary.todayTotalRevenue), subtitle: 'Doanh số thực tế ghi nhận', icon: DollarSign, color: '#f26c0d' },
@@ -544,8 +544,8 @@ const Dashboard = () => {
               </div>
             ) : (
             <div style={{ position: 'relative', width: '100%', overflowX: 'auto', padding: '1rem 0' }}>
-              <div style={{ minWidth: '700px', width: '100%', height: '250px' }}>
-                <svg viewBox="0 0 800 240" width="100%" height="100%" style={{ overflow: 'visible' }}>
+              <div style={{ minWidth: '700px', width: '100%', height: '380px' }}>
+                <svg viewBox="0 0 800 360" width="100%" height="100%" style={{ overflow: 'visible' }}>
                   <defs>
                     <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#f26c0d" stopOpacity="0.25" />
@@ -559,7 +559,7 @@ const Dashboard = () => {
 
                   {/* Horizontal Gridlines */}
                   {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
-                    const yVal = 20 + ratio * 180;
+                    const yVal = (paddingTop !== undefined ? paddingTop : 20) + ratio * (chartH !== undefined ? chartH : 300);
                     return (
                       <g key={ratio}>
                         <line
@@ -619,7 +619,7 @@ const Dashboard = () => {
                       {/* X axis labels */}
                       <text
                         x={pt.x}
-                        y="225"
+                        y={height !== undefined ? height - 15 : 345}
                         textAnchor="middle"
                         fill="var(--text-muted)"
                         fontSize="9.5"
@@ -983,16 +983,21 @@ const Dashboard = () => {
                     <div>
                       <p style={{ fontWeight: '800', fontSize: '0.9rem', margin: 0 }}>{prod.productName}</p>
                       <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', margin: 0 }}>
-                        SKU: {prod.productSku} • Lần bán cuối: {new Date(prod.lastSoldAt).toLocaleTimeString()}
+                        SKU: {prod.productSku || (prod.productId ? prod.productId.substring(0, 8).toUpperCase() : 'N/A')} • Lần bán cuối: {(() => {
+                          const timeStr = prod.lastUpdatedDetail || prod.lastUpdatedAt || prod.lastSoldAt;
+                          if (!timeStr) return 'Chưa cập nhật';
+                          const d = new Date(timeStr);
+                          return isNaN(d.getTime()) ? timeStr : d.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+                        })()}
                       </p>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <p style={{ fontWeight: '800', fontSize: '0.95rem', margin: 0, color: 'var(--primary)' }}>
-                      {formatCurrency(prod.totalRevenueGenerated)}
+                      {formatCurrency(prod.totalRevenue !== undefined ? prod.totalRevenue : prod.totalRevenueGenerated)}
                     </p>
                     <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--success)' }}>
-                      Đã bán: {prod.totalQuantitySold} chiếc
+                      Đã bán: {prod.totalSoldQuantity !== undefined ? prod.totalSoldQuantity : prod.totalQuantitySold} chiếc
                     </span>
                   </div>
                 </div>
