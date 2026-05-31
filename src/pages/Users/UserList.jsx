@@ -13,6 +13,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Lock,
   Unlock
 } from 'lucide-react';
@@ -28,6 +29,11 @@ const UserList = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedAddresses, setExpandedAddresses] = useState({});
+
+  const toggleAddresses = (customerId) => {
+    setExpandedAddresses(prev => ({ ...prev, [customerId]: !prev[customerId] }));
+  };
   const [currentPage, setCurrentPage] = useState(0);
 
   const loadCustomers = async () => {
@@ -348,13 +354,13 @@ const UserList = () => {
                   </div>
                 </div>
 
-                {/* Profile Body Fields */}
+                {/* Profile Body Fields - always show all 4 fields */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '0.85rem 0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                     <Mail size={15} color="var(--text-muted)" />
-                    <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Email:</span>
+                    <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px', flexShrink: 0 }}>Email:</span>
                     {customer.email ? (
-                      <a href={`mailto:${customer.email}`} style={{ color: 'var(--primary)', fontWeight: '700' }}>{customer.email}</a>
+                      <a href={`mailto:${customer.email}`} style={{ color: 'var(--primary)', fontWeight: '700', wordBreak: 'break-all' }}>{customer.email}</a>
                     ) : (
                       <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: '500' }}>Chưa cập nhật</span>
                     )}
@@ -362,75 +368,118 @@ const UserList = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                     <Phone size={15} color="var(--text-muted)" />
-                    <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Hotline:</span>
-                    <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{customer.phone || 'Không có số'}</span>
+                    <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px', flexShrink: 0 }}>Hotline:</span>
+                    {customer.phone ? (
+                      <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{customer.phone}</span>
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: '500' }}>Chưa cập nhật</span>
+                    )}
                   </div>
 
-                  {customer.gender && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                      <Smile size={15} color="var(--text-muted)" />
-                      <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Giới tính:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                    <Smile size={15} color="var(--text-muted)" />
+                    <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px', flexShrink: 0 }}>Giới tính:</span>
+                    {customer.gender ? (
                       <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>
                         {customer.gender === 'MALE' ? 'Nam' : customer.gender === 'FEMALE' ? 'Nữ' : customer.gender}
                       </span>
-                    </div>
-                  )}
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: '500' }}>Chưa cập nhật</span>
+                    )}
+                  </div>
 
-                  {customer.dateOfBirth && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                      <Calendar size={15} color="var(--text-muted)" />
-                      <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px' }}>Ngày sinh:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                    <Calendar size={15} color="var(--text-muted)" />
+                    <span style={{ fontWeight: '700', color: 'var(--text-muted)', width: '70px', flexShrink: 0 }}>Ngày sinh:</span>
+                    {customer.dateOfBirth ? (
                       <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{formatDateOnly(customer.dateOfBirth)}</span>
-                    </div>
-                  )}
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: '500' }}>Chưa cập nhật</span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Address List inside Card */}
                 <div>
-                  <p style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <MapPin size={14} />
-                    Sổ Địa Chỉ Nhận Hàng ({customer.addresses?.length || 0})
-                  </p>
+                  {(() => {
+                    const addrs = customer.addresses || [];
+                    const defaultAddr = addrs.find(a => a.isDefault) || addrs[0];
+                    const extraCount = addrs.length - 1;
+                    const isExpanded = !!expandedAddresses[customer.id || customer.accountId];
+                    const customerId = customer.id || customer.accountId;
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {!customer.addresses || customer.addresses.length === 0 ? (
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Khách hàng chưa đăng ký địa chỉ giao nhận.</p>
-                    ) : (
-                      customer.addresses.map((addr, addrIdx) => (
-                        <div key={addr.id || `addr-${addrIdx}`} style={{
-                          padding: '0.5rem 0.75rem',
-                          borderRadius: '6px',
-                          background: 'var(--bg-light)',
-                          border: '1px solid var(--border-color)',
-                          fontSize: '0.8rem',
-                          position: 'relative'
-                        }}>
-                          <p style={{ margin: 0, fontWeight: '700', color: 'var(--text-main)', paddingRight: addr.isDefault ? '60px' : '0', lineHeight: '1.4' }}>
-                            {addr.street}{addr.ward ? `, ${addr.ward}` : ''}{addr.city ? `, ${addr.city}` : ''}
+                    return (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                          <p style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <MapPin size={14} />
+                            Địa chỉ nhận hàng
                           </p>
-                          {addr.isDefault && (
-                            <span style={{
-                              position: 'absolute',
-                              top: '50%',
-                              right: '8px',
-                              transform: 'translateY(-50%)',
-                              fontSize: '0.65rem',
-                              fontWeight: '800',
-                              background: 'rgba(34, 197, 94, 0.1)',
-                              color: 'var(--success)',
-                              padding: '0.1rem 0.4rem',
-                              borderRadius: '4px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.15rem'
-                            }}>
-                              <Check size={8} strokeWidth={4} /> Mặc định
-                            </span>
+                          {extraCount > 0 && (
+                            <button
+                              onClick={() => toggleAddresses(customerId)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '0.72rem',
+                                fontWeight: '700',
+                                color: 'var(--primary)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.2rem',
+                                padding: '0.1rem 0.3rem',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              {isExpanded ? 'Thu gọn' : `+${extraCount} địa chỉ`}
+                              <ChevronDown size={12} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                            </button>
                           )}
                         </div>
-                      ))
-                    )}
-                  </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                          {addrs.length === 0 ? (
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Chưa đăng ký địa chỉ giao nhận.</p>
+                          ) : (
+                            (isExpanded ? addrs : (defaultAddr ? [defaultAddr] : [])).map((addr, addrIdx) => (
+                              <div key={addr.id || `addr-${addrIdx}`} style={{
+                                padding: '0.45rem 0.75rem',
+                                borderRadius: '6px',
+                                background: 'var(--bg-light)',
+                                border: '1px solid var(--border-color)',
+                                fontSize: '0.8rem',
+                                position: 'relative'
+                              }}>
+                                <p style={{ margin: 0, fontWeight: '700', color: 'var(--text-main)', paddingRight: addr.isDefault ? '60px' : '0', lineHeight: '1.4' }}>
+                                  {addr.street}{addr.ward ? `, ${addr.ward}` : ''}{addr.city ? `, ${addr.city}` : ''}
+                                </p>
+                                {addr.isDefault && (
+                                  <span style={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    right: '8px',
+                                    transform: 'translateY(-50%)',
+                                    fontSize: '0.65rem',
+                                    fontWeight: '800',
+                                    background: 'rgba(34, 197, 94, 0.1)',
+                                    color: 'var(--success)',
+                                    padding: '0.1rem 0.4rem',
+                                    borderRadius: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.15rem'
+                                  }}>
+                                    <Check size={8} strokeWidth={4} /> Mặc định
+                                  </span>
+                                )}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {/* Account Action Status */}

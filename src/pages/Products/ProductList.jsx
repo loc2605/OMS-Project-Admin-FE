@@ -154,6 +154,7 @@ const ProductList = () => {
       imageUrl: '',
       categoryName: ''
     });
+    loadCategories();
     setIsAddEditOpen(true);
   };
 
@@ -168,6 +169,7 @@ const ProductList = () => {
       imageUrl: product.imageUrl?.[0] || '',
       categoryName: product.categoryName
     });
+    loadCategories();
     setIsAddEditOpen(true);
   };
 
