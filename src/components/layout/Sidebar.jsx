@@ -30,12 +30,12 @@ const Sidebar = ({ isOpen, toggleSidebar, theme, toggleTheme }) => {
   return (
     <motion.aside
       initial={false}
-      animate={{ width: isOpen ? '280px' : '88px' }}
+      animate={{ width: isOpen ? '240px' : '80px' }}
       style={{
         height: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        padding: '1.5rem 1rem',
+        padding: isOpen ? '1.5rem 1rem' : '1.5rem 0.75rem',
         position: 'sticky',
         top: 0,
         zIndex: 100,
@@ -50,7 +50,7 @@ const Sidebar = ({ isOpen, toggleSidebar, theme, toggleTheme }) => {
         alignItems: 'center',
         gap: '0.75rem',
         marginBottom: '1.5rem', // Reduced to make space for the top controls
-        paddingLeft: '0.5rem',
+        paddingLeft: isOpen ? '0.5rem' : '0.25rem',
         height: '40px',
         overflow: 'hidden'
       }}>
@@ -93,7 +93,7 @@ const Sidebar = ({ isOpen, toggleSidebar, theme, toggleTheme }) => {
               display: 'flex',
               alignItems: 'center',
               gap: '1rem',
-              padding: '0.875rem 1rem',
+              padding: isOpen ? '0.875rem 1rem' : '0.875rem 0.65rem',
               borderRadius: 'var(--radius-lg)',
               color: isActive ? 'white' : 'var(--text-muted)',
               background: isActive ? 'var(--primary)' : 'transparent',
@@ -147,7 +147,7 @@ const Sidebar = ({ isOpen, toggleSidebar, theme, toggleTheme }) => {
             display: 'flex',
             alignItems: 'center',
             gap: '1rem',
-            padding: '0.875rem 1rem',
+            padding: isOpen ? '0.875rem 1rem' : '0.875rem 0.65rem',
             borderRadius: 'var(--radius-lg)',
             color: 'var(--text-muted)',
             fontWeight: '600',
@@ -186,7 +186,7 @@ const Sidebar = ({ isOpen, toggleSidebar, theme, toggleTheme }) => {
             display: 'flex',
             alignItems: 'center',
             gap: '1rem',
-            padding: '0.875rem 1rem',
+            padding: isOpen ? '0.875rem 1rem' : '0.875rem 0.65rem',
             borderRadius: 'var(--radius-lg)',
             color: 'var(--text-muted)',
             fontWeight: '600',

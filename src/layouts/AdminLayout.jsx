@@ -15,21 +15,21 @@ const AdminLayout = () => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)', transition: 'background-color 0.3s ease' }}>
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        toggleSidebar={toggleSidebar} 
+      <Sidebar
+        isOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar}
         theme={theme}
         toggleTheme={toggleTheme}
       />
-      
-      <div style={{ 
-        flex: 1, 
-        display: 'flex', 
+
+      <div style={{
+        flex: 1,
+        display: 'flex',
         flexDirection: 'column',
-        maxWidth: isSidebarOpen ? 'calc(100vw - 280px)' : 'calc(100vw - 88px)',
+        maxWidth: isSidebarOpen ? 'calc(100vw - 260px)' : 'calc(100vw - 84px)',
         transition: 'all 0.3s ease'
       }}>
-        <main style={{ 
+        <main style={{
           flex: 1,
           overflowY: 'auto',
           background: 'var(--bg-main)',

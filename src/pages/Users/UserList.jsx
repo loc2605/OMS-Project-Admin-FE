@@ -228,7 +228,7 @@ const UserList = () => {
         }}>
           {paginatedCustomers.map((customer, index) => (
             <motion.div
-              key={customer.id}
+              key={customer.id || customer.accountId || index}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
@@ -338,8 +338,8 @@ const UserList = () => {
                   {!customer.addresses || customer.addresses.length === 0 ? (
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Khách hàng chưa đăng ký địa chỉ giao nhận.</p>
                   ) : (
-                    customer.addresses.map(addr => (
-                      <div key={addr.id} style={{ 
+                    customer.addresses.map((addr, addrIdx) => (
+                      <div key={addr.id || `addr-${addrIdx}`} style={{ 
                         padding: '0.5rem 0.75rem', 
                         borderRadius: '6px', 
                         background: 'var(--bg-light)', 

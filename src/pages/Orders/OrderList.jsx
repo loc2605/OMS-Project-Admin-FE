@@ -499,116 +499,126 @@ const Orders = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-      {/* Header and Quick Stats */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h2 style={{ fontSize: '1.85rem', fontWeight: '800', margin: 0 }}>Quản lý đơn hàng</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Theo dõi, tra cứu và duyệt trạng thái vận chuyển cho đơn hàng</p>
-        </div>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <Button
-            variant="secondary"
-            icon={Download}
-            size="sm"
-            onClick={handleExportExcel}
-          >
-            Xuất Excel
-          </Button>
-        </div>
-      </div>
-
-      {/* Advanced Filter Box - Sticky */}
+      {/* Sticky Header + Filter Zone */}
       <div style={{
         position: 'sticky',
         top: '-1.5rem',
-        zIndex: 10,
-        background: 'var(--bg-card)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid var(--border-color)',
-        borderRadius: 'var(--radius-xl)',
-        padding: '1.25rem',
-        boxShadow: 'var(--shadow-md)',
+        zIndex: 20,
+        background: 'var(--bg-main)',
+        paddingTop: '1.5rem',
+        paddingBottom: '1rem',
+        marginTop: '-1.5rem',
         display: 'flex',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        alignItems: 'flex-end'
+        flexDirection: 'column',
+        gap: '1.5rem',
+        borderBottom: '1px solid var(--border-color)'
       }}>
-        <div style={{ flex: 1, minWidth: '200px' }}>
-          <Input
-            label="Tìm theo Mã Đơn"
-            placeholder="Nhập mã đơn..."
-            icon={Search}
-            value={searchId}
-            onChange={(e) => setSearchId(e.target.value)}
-          />
-        </div>
-
-        <div style={{ flex: 1, minWidth: '200px' }}>
-          <Input
-            label="Tìm tên Khách Hàng"
-            placeholder="Nhập tên khách hàng..."
-            icon={User}
-            value={searchCustomer}
-            onChange={(e) => setSearchCustomer(e.target.value)}
-          />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '200px' }}>
-          <label style={{ fontSize: '0.875rem', fontWeight: '700', color: 'var(--text-main)' }}>
-            Trạng thái Đơn hàng
-          </label>
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Filter size={16} style={{ position: 'absolute', left: '14px', color: 'var(--text-muted)' }} />
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.85rem 1rem 0.85rem 2.5rem',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border-color)',
-                backgroundColor: 'var(--bg-card)',
-                color: 'var(--text-main)',
-                outline: 'none',
-                fontWeight: '600',
-                appearance: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <option value="">Tất cả trạng thái</option>
-              <option value="PENDING">Chờ duyệt giao</option>
-              <option value="CONFIRMED">Đã xác nhận</option>
-              <option value="PROCESSING">Đang vận chuyển</option>
-              <option value="COMPLETED">Đã hoàn thành</option>
-              <option value="CANCELLED">Đã hủy</option>
-            </select>
+        {/* Header and Quick Stats */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h2 style={{ fontSize: '1.85rem', fontWeight: '800', margin: 0 }}>Quản lý đơn hàng</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>Theo dõi, tra cứu và duyệt trạng thái vận chuyển cho đơn hàng</p>
           </div>
-        </div>
-
-        {(searchId || searchCustomer || filterStatus) && (
-          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
             <Button
               variant="secondary"
-              size="md"
-              style={{
-                padding: '0.85rem 1.25rem',
-                borderRadius: 'var(--radius-lg)',
-                backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                color: '#ef4444',
-                border: '1px solid rgba(239, 68, 68, 0.2)',
-                fontWeight: '700'
-              }}
-              onClick={() => {
-                setSearchId('');
-                setSearchCustomer('');
-                setFilterStatus('');
-              }}
+              icon={Download}
+              size="sm"
+              onClick={handleExportExcel}
             >
-              Đặt lại
+              Xuất Excel
             </Button>
           </div>
-        )}
+        </div>
+
+        {/* Advanced Filter Box */}
+        <div style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-xl)',
+          padding: '1.25rem',
+          boxShadow: 'var(--shadow-md)',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          alignItems: 'flex-end'
+        }}>
+          <div style={{ flex: 1, minWidth: '200px' }}>
+            <Input
+              label="Tìm theo Mã Đơn"
+              placeholder="Nhập mã đơn..."
+              icon={Search}
+              value={searchId}
+              onChange={(e) => setSearchId(e.target.value)}
+            />
+          </div>
+
+          <div style={{ flex: 1, minWidth: '200px' }}>
+            <Input
+              label="Tìm tên Khách Hàng"
+              placeholder="Nhập tên khách hàng..."
+              icon={User}
+              value={searchCustomer}
+              onChange={(e) => setSearchCustomer(e.target.value)}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '200px' }}>
+            <label style={{ fontSize: '0.875rem', fontWeight: '700', color: 'var(--text-main)' }}>
+              Trạng thái Đơn hàng
+            </label>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <Filter size={16} style={{ position: 'absolute', left: '14px', color: 'var(--text-muted)' }} />
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.85rem 1rem 0.85rem 2.5rem',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'var(--bg-card)',
+                  color: 'var(--text-main)',
+                  outline: 'none',
+                  fontWeight: '600',
+                  appearance: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="">Tất cả trạng thái</option>
+                <option value="PENDING">Chờ duyệt giao</option>
+                <option value="CONFIRMED">Đã xác nhận</option>
+                <option value="PROCESSING">Đang vận chuyển</option>
+                <option value="COMPLETED">Đã hoàn thành</option>
+                <option value="CANCELLED">Đã hủy</option>
+              </select>
+            </div>
+          </div>
+
+          {(searchId || searchCustomer || filterStatus) && (
+            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <Button
+                variant="secondary"
+                size="md"
+                style={{
+                  padding: '0.85rem 1.25rem',
+                  borderRadius: 'var(--radius-lg)',
+                  backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                  color: '#ef4444',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  fontWeight: '700'
+                }}
+                onClick={() => {
+                  setSearchId('');
+                  setSearchCustomer('');
+                  setFilterStatus('');
+                }}
+              >
+                Đặt lại
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Table Wrapper */}

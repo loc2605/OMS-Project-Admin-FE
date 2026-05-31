@@ -32,22 +32,9 @@ const LoginPage = () => {
         toast.error(response.message || 'Đăng nhập thất bại.');
       }
     } catch (error) {
-      console.warn('API error, executing local mock login for development environment', error);
-      
-      // Chế độ mô phỏng dự phòng khi Backend Offline
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Thiết lập các dữ liệu Mock
-      localStorage.setItem('admin_token', 'mock_token_admin_123');
-      localStorage.setItem('admin_user', JSON.stringify({
-        id: 'admin-account-id',
-        username: data.username,
-        role: 'ADMIN',
-        token: 'mock_token_admin_123'
-      }));
-      
-      toast.success('Đăng nhập thành công! (Chế độ giả lập DEV)');
-      navigate('/');
+      console.error('API error on login:', error);
+      const errMsg = error.response?.data?.message || 'Tên đăng nhập hoặc mật khẩu không chính xác.';
+      toast.error(errMsg);
     }
   };
 

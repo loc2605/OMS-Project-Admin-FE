@@ -129,8 +129,15 @@ const Dashboard = () => {
   };
 
   const applyApiResult = (response, onSuccess) => {
-    if (isApiSuccess(response)) {
-      onSuccess(response.result);
+    if (response && typeof response === 'object' && 'success' in response) {
+      if (response.success) {
+        onSuccess(response.result);
+        return true;
+      }
+      return false;
+    }
+    if (response !== undefined && response !== null) {
+      onSuccess(response);
       return true;
     }
     return false;
@@ -139,6 +146,8 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     const errors = {};
+
+    console.log(">>> [Dashboard] Starting to fetch dashboard data from real APIs...");
 
     const [
       summaryResult,
@@ -155,67 +164,77 @@ const Dashboard = () => {
     ]);
 
     if (summaryResult.status === 'fulfilled') {
+      console.log(">>> [Summary API Success] Result:", summaryResult.value);
       if (!applyApiResult(summaryResult.value, setSummary)) {
+        console.error(">>> [Summary API Fail] Response status was not successful or format invalid:", summaryResult.value);
         setSummary(EMPTY_SUMMARY);
         errors.summary = true;
       }
     } else {
+      console.error(">>> [Summary API Error] Rejected reason:", summaryResult.reason);
       setSummary(EMPTY_SUMMARY);
       errors.summary = true;
-      console.error('Summary API:', summaryResult.reason);
     }
 
     if (alertsResult.status === 'fulfilled') {
+      console.log(">>> [Inventory Alerts API Success] Result:", alertsResult.value);
       if (!applyApiResult(alertsResult.value, setInventoryAlerts)) {
+        console.error(">>> [Inventory Alerts API Fail] Response status not successful:", alertsResult.value);
         setInventoryAlerts([]);
         errors.alerts = true;
       }
     } else {
+      console.error(">>> [Inventory Alerts API Error] Rejected reason:", alertsResult.reason);
       setInventoryAlerts([]);
       errors.alerts = true;
-      console.error('Inventory alerts API:', alertsResult.reason);
     }
 
     if (chartResult.status === 'fulfilled') {
+      console.log(">>> [Revenue Chart API Success] Result:", chartResult.value);
       if (!applyApiResult(chartResult.value, setRevenueChartData)) {
+        console.error(">>> [Revenue Chart API Fail] Response status not successful:", chartResult.value);
         setRevenueChartData([]);
         errors.chart = true;
       }
     } else {
+      console.error(">>> [Revenue Chart API Error] Rejected reason:", chartResult.reason);
       setRevenueChartData([]);
       errors.chart = true;
-      console.error('Revenue chart API:', chartResult.reason);
     }
 
     if (topProductsResult.status === 'fulfilled') {
+      console.log(">>> [Top Products API Success] Result:", topProductsResult.value);
       if (!applyApiResult(topProductsResult.value, setTopProducts)) {
+        console.error(">>> [Top Products API Fail] Response status not successful:", topProductsResult.value);
         setTopProducts([]);
         errors.topProducts = true;
       }
     } else {
+      console.error(">>> [Top Products API Error] Rejected reason:", topProductsResult.reason);
       setTopProducts([]);
       errors.topProducts = true;
-      console.error('Top products API:', topProductsResult.reason);
     }
 
     if (shippersResult.status === 'fulfilled') {
+      console.log(">>> [Shippers KPI API Success] Result:", shippersResult.value);
       if (!applyApiResult(shippersResult.value, setShippersKpi)) {
+        console.error(">>> [Shippers KPI API Fail] Response status not successful:", shippersResult.value);
         setShippersKpi([]);
         errors.shippers = true;
       }
     } else {
+      console.error(">>> [Shippers KPI API Error] Rejected reason:", shippersResult.reason);
       setShippersKpi([]);
       errors.shippers = true;
-      console.error('Shippers KPI API:', shippersResult.reason);
     }
 
     setLoadErrors(errors);
 
     const failedCount = Object.keys(errors).length;
     if (failedCount === 5) {
-      toast.error('Không thể tải dữ liệu tổng quan. Kiểm tra kết nối API.');
+      toast.error('Không thể tải dữ liệu tổng quan. Kiểm tra kết nối API trong console log.');
     } else if (failedCount > 0) {
-      toast.warning(`Một số mục chưa tải được (${failedCount}/5). Bấm Làm mới để thử lại.`);
+      toast.warning(`Không thể tải ${failedCount}/5 mục dữ liệu tổng quan. Hãy kiểm tra console log.`);
     }
 
     setLoading(false);
@@ -491,13 +510,29 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {loadErrors.chart && (
-              <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: 'var(--error)', fontWeight: 700 }}>
-                Không tải được biểu đồ doanh thu.
-              </p>
-            )}
-
-            {revenueChartData.length === 0 && !loading ? (
+            {loadErrors.chart ? (
+              <div style={{
+                padding: '3.5rem 1.5rem',
+                textAlign: 'center',
+                color: 'var(--error)',
+                border: '1px dashed rgba(239, 68, 68, 0.4)',
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: 'rgba(239, 68, 68, 0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '0.75rem',
+                margin: '1rem 0'
+              }}>
+                <AlertTriangle size={38} color="var(--error)" style={{ opacity: 0.85 }} />
+                <div>
+                  <p style={{ margin: '0 0 0.25rem', fontWeight: 800, fontSize: '0.95rem' }}>Không thể tải biểu đồ doanh thu</p>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', maxWidth: '480px', lineHeight: '1.4' }}>
+                    Kết nối đến phân hệ thống phân tích doanh số bị gián đoạn. Vui lòng bấm "Làm mới" ở phía trên hoặc đăng nhập lại nếu phiên đã hết hạn.
+                  </p>
+                </div>
+              </div>
+            ) : revenueChartData.length === 0 && !loading ? (
               <div style={{
                 padding: '3rem 1rem',
                 textAlign: 'center',
@@ -655,12 +690,26 @@ const Dashboard = () => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {loadErrors.alerts && (
-                <p style={{ margin: '0 0 0.5rem', fontSize: '0.8rem', color: 'var(--error)', fontWeight: 700 }}>
-                  Không tải được danh sách cảnh báo tồn kho.
-                </p>
-              )}
-              {inventoryAlerts.length === 0 && !loading ? (
+              {loadErrors.alerts ? (
+                <div style={{
+                  padding: '2.5rem 1rem',
+                  textAlign: 'center',
+                  color: 'var(--error)',
+                  border: '1px dashed rgba(239, 68, 68, 0.4)',
+                  borderRadius: 'var(--radius-lg)',
+                  backgroundColor: 'rgba(239, 68, 68, 0.02)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <AlertTriangle size={30} color="var(--error)" style={{ opacity: 0.8 }} />
+                  <div>
+                    <p style={{ margin: '0 0 0.25rem', fontWeight: 800, fontSize: '0.9rem' }}>Không thể tải cảnh báo tồn kho</p>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Lỗi kết nối với dịch vụ quản lý kho hàng.</p>
+                  </div>
+                </div>
+              ) : inventoryAlerts.length === 0 && !loading ? (
                 <div style={{
                   padding: '2rem',
                   textAlign: 'center',
@@ -885,12 +934,26 @@ const Dashboard = () => {
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {loadErrors.topProducts && (
-                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--error)', fontWeight: 700 }}>
-                  Không tải được danh sách sản phẩm bán chạy.
-                </p>
-              )}
-              {topProducts.length === 0 && !loading ? (
+              {loadErrors.topProducts ? (
+                <div style={{
+                  padding: '2rem 1rem',
+                  textAlign: 'center',
+                  color: 'var(--error)',
+                  border: '1px dashed rgba(239, 68, 68, 0.4)',
+                  borderRadius: 'var(--radius-lg)',
+                  backgroundColor: 'rgba(239, 68, 68, 0.02)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <AlertTriangle size={24} color="var(--error)" style={{ opacity: 0.8 }} />
+                  <div>
+                    <p style={{ margin: '0 0 0.25rem', fontWeight: 800, fontSize: '0.85rem' }}>Không thể tải sản phẩm bán chạy</p>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Dịch vụ thống kê sản phẩm đang bảo trì.</p>
+                  </div>
+                </div>
+              ) : topProducts.length === 0 && !loading ? (
                 <p style={{ margin: 0, color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>
                   Chưa có dữ liệu sản phẩm bán chạy.
                 </p>
@@ -951,12 +1014,26 @@ const Dashboard = () => {
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {loadErrors.shippers && (
-                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--error)', fontWeight: 700 }}>
-                  Không tải được chỉ số shipper.
-                </p>
-              )}
-              {shippersKpi.length === 0 && !loading ? (
+              {loadErrors.shippers ? (
+                <div style={{
+                  padding: '2rem 1rem',
+                  textAlign: 'center',
+                  color: 'var(--error)',
+                  border: '1px dashed rgba(239, 68, 68, 0.4)',
+                  borderRadius: 'var(--radius-lg)',
+                  backgroundColor: 'rgba(239, 68, 68, 0.02)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <AlertTriangle size={24} color="var(--error)" style={{ opacity: 0.8 }} />
+                  <div>
+                    <p style={{ margin: '0 0 0.25rem', fontWeight: 800, fontSize: '0.85rem' }}>Không thể tải chỉ số shipper</p>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Dịch vụ giao nhận đang bảo trì hoặc quá tải.</p>
+                  </div>
+                </div>
+              ) : shippersKpi.length === 0 && !loading ? (
                 <p style={{ margin: 0, color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>
                   Chưa có dữ liệu hiệu suất giao hàng.
                 </p>
