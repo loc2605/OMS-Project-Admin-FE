@@ -22,7 +22,7 @@ import customerService from '../../services/customerService';
 import Button from '../../components/common/Button';
 import { formatDateOnly } from '../../utils/format';
 
-const CUSTOMERS_PER_PAGE = 9;
+const CUSTOMERS_PER_PAGE = 6;
 
 const UserList = () => {
   const [customers, setCustomers] = useState([]);
