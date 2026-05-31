@@ -79,7 +79,22 @@ apiClient.interceptors.response.use(
     }
 
     if (status === 403) {
-      toast.error('Bạn không có quyền thực hiện thao tác này.');
+      const serverMessage = error.response?.data?.message || '';
+      const isBlocked = serverMessage.toLowerCase().includes('khoá') || 
+                        serverMessage.toLowerCase().includes('khóa') || 
+                        serverMessage.toLowerCase().includes('blocked') || 
+                        serverMessage.toLowerCase().includes('banned');
+      
+      if (isBlocked) {
+        toast.error(serverMessage || 'Tài khoản của bạn đã bị khoá trên hệ thống.');
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1500);
+      } else {
+        toast.error(serverMessage || 'Bạn không có quyền thực hiện thao tác này.');
+      }
     } else if (status >= 500) {
       toast.error('Lỗi máy chủ. Vui lòng thử lại sau.');
     } else {

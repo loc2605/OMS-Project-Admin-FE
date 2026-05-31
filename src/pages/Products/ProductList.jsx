@@ -54,14 +54,11 @@ const ProductList = () => {
     categoryName: ''
   });
 
+  const [categories, setCategories] = useState([]);
+
   const categoryOptions = useMemo(() => {
-    const names = new Set(
-      products.map((p) => p.categoryName).filter(Boolean)
-    );
-    if (productForm.categoryName) names.add(productForm.categoryName);
-    if (editingProduct?.categoryName) names.add(editingProduct.categoryName);
-    return [...names].sort((a, b) => a.localeCompare(b, 'vi'));
-  }, [products, productForm.categoryName, editingProduct]);
+    return categories.map((cat) => cat.name);
+  }, [categories]);
 
   const [isStockOpen, setIsStockOpen] = useState(false);
   const [stockProduct, setStockProduct] = useState(null);
@@ -72,6 +69,39 @@ const ProductList = () => {
     action: 'IMPORT',
   });
   const [submittingStock, setSubmittingStock] = useState(false);
+
+  // Fetch Categories
+  const loadCategories = async () => {
+    try {
+      const response = await productService.getCategories();
+      if (response.success) {
+        setCategories(response.result);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy danh mục từ API:", error);
+      // Fallback categories matching the database seeds
+      setCategories([
+        { id: 'f0000000-0000-0000-0000-000000000001', name: 'Thời trang Nam' },
+        { id: 'f0000000-0000-0000-0000-000000000002', name: 'Thời trang Nữ' },
+        { id: 'f0000000-0000-0000-0000-000000000003', name: 'Thời trang Trẻ em' },
+        { id: 'f0000000-0000-0000-0000-000000000004', name: 'Tai nghe' },
+        { id: 'f0000000-0000-0000-0000-000000000005', name: 'Điện thoại' },
+        { id: 'f0000000-0000-0000-0000-000000000006', name: 'Phụ kiện' },
+        { id: 'f0000000-0000-0000-0000-000000000007', name: 'Máy ảnh' },
+        { id: 'f0000000-0000-0000-0000-000000000008', name: 'Máy tính xách tay' },
+        { id: 'f0000000-0000-0000-0000-000000000009', name: 'Phụ kiện thời trang' },
+        { id: 'f0000000-0000-0000-0000-000000000010', name: 'Giày dép' },
+        { id: 'f0000000-0000-0000-0000-000000000011', name: 'Sức khỏe & Sắc đẹp' },
+        { id: 'f0000000-0000-0000-0000-000000000012', name: 'Tivi & Màn hình' },
+        { id: 'f0000000-0000-0000-0000-000000000013', name: 'Máy tính bảng' },
+        { id: 'f0000000-0000-0000-0000-000000000014', name: 'Nội thất & Nhà cửa' },
+        { id: 'f0000000-0000-0000-0000-000000000015', name: 'Thiết bị gia dụng' },
+        { id: 'f0000000-0000-0000-0000-000000000016', name: 'Dụng cụ nhà bếp' },
+        { id: 'f0000000-0000-0000-0000-000000000017', name: 'Thể thao & Thể hình' },
+        { id: 'f0000000-0000-0000-0000-000000000018', name: 'Y tế & Chăm sóc cá nhân' }
+      ]);
+    }
+  };
 
   // Fetch Products
   const loadProducts = async () => {
@@ -110,6 +140,7 @@ const ProductList = () => {
 
   useEffect(() => {
     loadProducts();
+    loadCategories();
   }, []);
 
   // Open Add Modal
@@ -143,22 +174,32 @@ const ProductList = () => {
   // Handle Add/Edit Submit
   const handleProductSubmit = async (e) => {
     e.preventDefault();
-    const payload = {
-      ...productForm,
-      price: Number(productForm.price),
-      imageUrl: productForm.imageUrl ? [productForm.imageUrl] : []
-    };
+    
+    // Dynamic Category ID mapping from state categories list
+    const matchedCategory = categories.find(cat => cat.name === productForm.categoryName);
+    const categoryId = matchedCategory ? matchedCategory.id : 'f0000000-0000-0000-0000-000000000001';
+
+    const formData = new FormData();
+    formData.append('name', productForm.name);
+    formData.append('sku', productForm.sku);
+    formData.append('price', Number(productForm.price));
+    formData.append('description', productForm.description || '');
+    formData.append('categoryId', categoryId);
+    
+    if (productForm.imageUrl) {
+      formData.append('imageUrl', productForm.imageUrl);
+    }
 
     try {
       if (editingProduct) {
-        const res = await productService.updateProduct(editingProduct.id, payload);
+        const res = await productService.updateProduct(editingProduct.id, formData);
         if (res.success) {
           toast.success("Cập nhật sản phẩm thành công!");
           setIsAddEditOpen(false);
           loadProducts();
         }
       } else {
-        const res = await productService.createProduct(payload);
+        const res = await productService.createProduct(formData);
         if (res.success) {
           toast.success("Tạo sản phẩm mới thành công!");
           setIsAddEditOpen(false);
@@ -171,6 +212,11 @@ const ProductList = () => {
       setIsAddEditOpen(false);
       
       // Update local state directly to show positive results immediately if API fails
+      const payload = {
+        ...productForm,
+        price: Number(productForm.price),
+        imageUrl: productForm.imageUrl ? [productForm.imageUrl] : []
+      };
       if (editingProduct) {
         setProducts(prev => prev.map(p => p.id === editingProduct.id ? { ...p, ...payload } : p));
       } else {

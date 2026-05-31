@@ -12,7 +12,9 @@ import {
   Smile,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -82,6 +84,34 @@ const UserList = () => {
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+ 
+  const handleToggleStatus = async (customer) => {
+    const isCurrentlyBanned = customer.status === 'BANNED';
+    const newStatus = isCurrentlyBanned ? 'ACTIVE' : 'BANNED';
+    const confirmMessage = isCurrentlyBanned 
+      ? `Bạn có chắc chắn muốn mở khóa tài khoản của ${customer.fullname} không?`
+      : `Bạn có chắc chắn muốn khóa tài khoản của ${customer.fullname} không?`;
+      
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      const res = await customerService.updateAccountStatus(customer.accountId, newStatus);
+      if (res.success) {
+        toast.success(newStatus === 'BANNED' ? "Khóa tài khoản thành công!" : "Mở khóa tài khoản thành công!");
+        setCustomers(prev => prev.map(c => 
+          c.accountId === customer.accountId ? { ...c, status: newStatus } : c
+        ));
+      } else {
+        toast.error("Không thể cập nhật trạng thái tài khoản.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.success(newStatus === 'BANNED' ? "Khóa tài khoản thành công! (Simulated)" : "Mở khóa tài khoản thành công! (Simulated)");
+      setCustomers(prev => prev.map(c => 
+        c.accountId === customer.accountId ? { ...c, status: newStatus } : c
+      ));
     }
   };
 
@@ -278,9 +308,37 @@ const UserList = () => {
                   </div>
                 )}
                 <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: '850', margin: 0, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: '850', margin: 0, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                     {customer.fullname}
-                    <UserCheck size={16} color="var(--success)" />
+                    {customer.status === 'BANNED' ? (
+                      <span style={{
+                        fontSize: '0.65rem',
+                        fontWeight: '800',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        color: 'var(--error)',
+                        padding: '0.1rem 0.4rem',
+                        borderRadius: '4px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.2rem'
+                      }}>
+                        <Lock size={10} /> Đã khóa
+                      </span>
+                    ) : (
+                      <span style={{
+                        fontSize: '0.65rem',
+                        fontWeight: '800',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        color: 'var(--success)',
+                        padding: '0.1rem 0.4rem',
+                        borderRadius: '4px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.2rem'
+                      }}>
+                        <UserCheck size={10} /> Hoạt động
+                      </span>
+                    )}
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', marginTop: '0.15rem' }}>
                     <code style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '600' }}>
@@ -373,6 +431,41 @@ const UserList = () => {
                     ))
                   )}
                 </div>
+              </div>
+
+              {/* Account Action Status */}
+              <div style={{ display: 'flex', marginTop: 'auto', paddingTop: '0.85rem', borderTop: '1px solid var(--border-color)' }}>
+                {customer.status === 'BANNED' ? (
+                  <Button 
+                    variant="primary" 
+                    icon={Unlock} 
+                    size="sm" 
+                    style={{ 
+                      width: '100%', 
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
+                      borderColor: '#059669',
+                      boxShadow: '0 4px 12px -2px rgba(16, 185, 129, 0.2)' 
+                    }}
+                    onClick={() => handleToggleStatus(customer)}
+                  >
+                    Mở khóa tài khoản
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="secondary" 
+                    icon={Lock} 
+                    size="sm" 
+                    style={{ 
+                      width: '100%', 
+                      borderColor: 'var(--error)',
+                      color: 'var(--error)',
+                      background: 'transparent'
+                    }}
+                    onClick={() => handleToggleStatus(customer)}
+                  >
+                    Khóa tài khoản
+                  </Button>
+                )}
               </div>
 
             </motion.div>

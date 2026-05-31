@@ -8,6 +8,11 @@ const productService = {
     return response.data;
   },
 
+  getCategories: async () => {
+    const response = await apiClient.get('/api/v1/categories');
+    return response.data;
+  },
+
   getProductById: async (id) => {
     const response = await apiClient.get(`/api/v1/products/${id}`);
     return response.data;
@@ -15,12 +20,18 @@ const productService = {
 
   // Admin APIs
   createProduct: async (productData) => {
-    const response = await apiClient.post('/api/v1/products', productData);
+    const isFormData = productData instanceof FormData;
+    const response = await apiClient.post('/api/v1/products', productData, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
+    });
     return response.data;
   },
 
   updateProduct: async (id, productData) => {
-    const response = await apiClient.put(`/api/v1/products/${id}`, productData);
+    const isFormData = productData instanceof FormData;
+    const response = await apiClient.put(`/api/v1/products/${id}`, productData, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
+    });
     return response.data;
   },
 
