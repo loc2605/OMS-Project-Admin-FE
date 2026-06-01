@@ -260,7 +260,8 @@ const UserList = () => {
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
-            gap: '1.25rem'
+            gap: '1.25rem',
+            alignItems: 'start'
           }}>
             {paginatedCustomers.map((customer, index) => (
               <motion.div

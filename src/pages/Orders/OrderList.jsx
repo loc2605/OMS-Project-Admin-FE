@@ -58,7 +58,7 @@ const Orders = () => {
       };
 
       const response = await orderService.getAdminOrders(params);
-      console.log('>>> [API - Orders List] response:', response);
+      console.log('%c>>> [API - Orders List] response:', 'color: #f26c0d; font-weight: bold; font-size: 13px; background: rgba(242, 108, 13, 0.15); padding: 4px 8px; border-radius: 4px;', response);
       if (response && response.success) {
         // Handle content in paginated result or default flat list
         let content = response.result?.content || response.result || [];
@@ -269,7 +269,7 @@ const Orders = () => {
     setDetailsLoading(true);
     try {
       const response = await orderService.getAdminOrderById(orderId);
-      console.log('>>> [API - Order Detail] response:', response);
+      console.log('%c>>> [API - Order Detail] response:', 'color: #3b82f6; font-weight: bold; font-size: 13px; background: rgba(59, 130, 246, 0.15); padding: 4px 8px; border-radius: 4px;', response);
       if (response && response.success) {
         setSelectedOrder(response.result);
       } else {
@@ -405,8 +405,9 @@ const Orders = () => {
       header: 'Thanh Toán',
       accessorKey: 'paymentMethod',
       cell: (info) => {
-        const paymentStatus = info.row.original.paymentStatus;
+        const paymentStatus = String(info.row.original.paymentStatus || '').toUpperCase();
         const isPaid = paymentStatus === 'PAID' ||
+          paymentStatus === 'SUCCESS' ||
           info.row.original.paymentId?.includes('SUCCESS') ||
           info.row.original.status === 'COMPLETED';
         return (
@@ -643,13 +644,12 @@ const Orders = () => {
           padding: '1.5rem',
           animation: 'fadeIn 0.2s ease-out'
         }}>
-          {/* Modal Content */}
           <div style={{
             background: 'var(--bg-card)',
             border: '1px solid var(--border-color)',
             borderRadius: 'var(--radius-xl)',
             width: '100%',
-            maxWidth: '850px',
+            maxWidth: '1200px',
             maxHeight: '90vh',
             overflowY: 'auto',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
@@ -836,7 +836,9 @@ const Orders = () => {
                     <div>
                       <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Trạng thái thanh toán:</span>
                       {(() => {
-                        const isPaid = selectedOrder.paymentStatus === 'PAID' ||
+                        const paymentStatus = String(selectedOrder.paymentStatus || '').toUpperCase();
+                        const isPaid = paymentStatus === 'PAID' ||
+                          paymentStatus === 'SUCCESS' ||
                           selectedOrder.paymentId?.includes('SUCCESS') ||
                           selectedOrder.status === 'COMPLETED';
                         return (
