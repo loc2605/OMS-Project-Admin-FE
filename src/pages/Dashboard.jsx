@@ -93,7 +93,6 @@ const Dashboard = () => {
   const [inventoryAlerts, setInventoryAlerts] = useState([]);
   const [revenueChartData, setRevenueChartData] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
-  const [shippersKpi, setShippersKpi] = useState([]);
 
   // AI Playground & Bootstrap States
   const [isSyncingAI, setIsSyncingAI] = useState(false);
@@ -157,13 +156,11 @@ const Dashboard = () => {
       alertsResult,
       chartResult,
       topProductsResult,
-      shippersResult,
     ] = await Promise.allSettled([
       dashboardService.getSummary(),
       dashboardService.getInventoryAlerts(),
       dashboardService.getRevenueChart(startDate, endDate),
       dashboardService.getTopProducts(5),
-      dashboardService.getShippersKpi(),
     ]);
 
     if (summaryResult.status === 'fulfilled') {
@@ -218,26 +215,13 @@ const Dashboard = () => {
       errors.topProducts = true;
     }
 
-    if (shippersResult.status === 'fulfilled') {
-      console.log(">>> [Shippers KPI API Success] Result:", shippersResult.value);
-      if (!applyApiResult(shippersResult.value, setShippersKpi)) {
-        console.error(">>> [Shippers KPI API Fail] Response status not successful:", shippersResult.value);
-        setShippersKpi([]);
-        errors.shippers = true;
-      }
-    } else {
-      console.error(">>> [Shippers KPI API Error] Rejected reason:", shippersResult.reason);
-      setShippersKpi([]);
-      errors.shippers = true;
-    }
-
     setLoadErrors(errors);
 
     const failedCount = Object.keys(errors).length;
-    if (failedCount === 5) {
+    if (failedCount === 4) {
       toast.error('Không thể tải dữ liệu tổng quan. Kiểm tra kết nối API trong console log.');
     } else if (failedCount > 0) {
-      toast.warning(`Không thể tải ${failedCount}/5 mục dữ liệu tổng quan. Hãy kiểm tra console log.`);
+      toast.warning(`Không thể tải ${failedCount}/4 mục dữ liệu tổng quan. Hãy kiểm tra console log.`);
     }
 
     setLoading(false);
@@ -674,7 +658,8 @@ const Dashboard = () => {
         flexDirection: 'column',
         gap: '1.5rem',
         width: '100%',
-        marginTop: '-0.35rem'
+        marginTop: '-0.35rem',
+        marginBottom: '-2.5rem'
       }}>
 
         {/* Left Column: Sản phẩm bán chạy */}
@@ -761,193 +746,119 @@ const Dashboard = () => {
         </div>
 
         {/* Row 2: Cảnh báo tồn kho */}
-          <div style={{
-            background: 'var(--bg-card)',
-            padding: '1.5rem',
-            borderRadius: 'var(--radius-xl)',
-            border: '1px solid var(--border-color)',
-            boxShadow: 'var(--shadow-subtle)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.25rem'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <AlertTriangle size={20} color="var(--warning)" />
-                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0 }}>Cảnh báo tồn kho</h3>
-              </div>
-              <span style={{
-                fontSize: '0.75rem',
-                background: 'rgba(239, 68, 68, 0.1)',
-                color: 'var(--error)',
-                padding: '0.2rem 0.6rem',
-                borderRadius: '10px',
-                fontWeight: '800'
-              }}>{inventoryAlerts.length} Cảnh báo</span>
+        <div style={{
+          background: 'var(--bg-card)',
+          padding: '1.5rem',
+          borderRadius: 'var(--radius-xl)',
+          border: '1px solid var(--border-color)',
+          boxShadow: 'var(--shadow-subtle)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.25rem'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertTriangle size={20} color="var(--warning)" />
+              <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0 }}>Cảnh báo tồn kho</h3>
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {loadErrors.alerts ? (
-                <div style={{
-                  padding: '2.5rem 1rem',
-                  textAlign: 'center',
-                  color: 'var(--error)',
-                  border: '1px dashed rgba(239, 68, 68, 0.4)',
-                  borderRadius: 'var(--radius-lg)',
-                  backgroundColor: 'rgba(239, 68, 68, 0.02)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  <AlertTriangle size={30} color="var(--error)" style={{ opacity: 0.8 }} />
-                  <div>
-                    <p style={{ margin: '0 0 0.25rem', fontWeight: 800, fontSize: '0.9rem' }}>Không thể tải cảnh báo tồn kho</p>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Lỗi kết nối với dịch vụ quản lý kho hàng.</p>
-                  </div>
-                </div>
-              ) : inventoryAlerts.length === 0 && !loading ? (
-                <div style={{
-                  padding: '2rem',
-                  textAlign: 'center',
-                  color: 'var(--text-muted)',
-                  border: '1px dashed var(--border-color)',
-                  borderRadius: 'var(--radius-lg)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <CheckCircle2 size={36} color="var(--success)" style={{ margin: '0 auto 0.5rem auto', opacity: 0.8 }} />
-                  <p style={{ fontWeight: '700', fontSize: '0.9rem', margin: 0 }}>Kho hàng đạt trạng thái an toàn.</p>
-                </div>
-              ) : (
-                inventoryAlerts.map((alert) => (
-                  <div key={alert.id} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.85rem',
-                    borderRadius: 'var(--radius-lg)',
-                    border: '1px solid var(--border-color)',
-                    background: 'var(--bg-light)',
-                    gap: '0.75rem',
-                    flexWrap: 'wrap'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: '180px' }}>
-                      {alert.product?.imageUrl?.[0] ? (
-                        <img
-                          src={alert.product.imageUrl[0]}
-                          alt={alert.product.name}
-                          style={{ width: '38px', height: '38px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color)' }}
-                        />
-                      ) : (
-                        <div style={{ width: '38px', height: '38px', background: 'var(--border-color)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <ShoppingBag size={16} color="var(--text-muted)" />
-                        </div>
-                      )}
-                      <div>
-                        <h4 style={{ fontSize: '0.85rem', fontWeight: '800', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {alert.product?.name || 'Sản phẩm lỗi'}
-                        </h4>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--error)', fontWeight: '700' }}>
-                          Tồn: {alert.availableQuantity} chiếc
-                        </span>
-                      </div>
-                    </div>
-
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      icon={Plus}
-                      onClick={() => {
-                        setRestockItem(alert);
-                        setRestockAction('IMPORT');
-                        setRestockQuantity(50);
-                      }}
-                      style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
-                    >
-                      Nhập hàng
-                    </Button>
-                  </div>
-                ))
-              )}
-            </div>
+            <span style={{
+              fontSize: '0.75rem',
+              background: 'rgba(239, 68, 68, 0.1)',
+              color: 'var(--error)',
+              padding: '0.2rem 0.6rem',
+              borderRadius: '10px',
+              fontWeight: '800'
+            }}>{inventoryAlerts.length} Cảnh báo</span>
           </div>
 
-          {/* Column 3: Hiệu suất giao hàng */}
-          <div style={{
-            background: 'var(--bg-card)',
-            padding: '1.5rem',
-            borderRadius: 'var(--radius-xl)',
-            border: '1px solid var(--border-color)',
-            boxShadow: 'var(--shadow-subtle)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.25rem'
-          }}>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Truck size={20} color="var(--primary)" />
-              Hiệu suất giao hàng
-            </h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {loadErrors.shippers ? (
-                <div style={{
-                  padding: '2rem 1rem',
-                  textAlign: 'center',
-                  color: 'var(--error)',
-                  border: '1px dashed rgba(239, 68, 68, 0.4)',
-                  borderRadius: 'var(--radius-lg)',
-                  backgroundColor: 'rgba(239, 68, 68, 0.02)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  <AlertTriangle size={24} color="var(--error)" style={{ opacity: 0.8 }} />
-                  <div>
-                    <p style={{ margin: '0 0 0.25rem', fontWeight: 800, fontSize: '0.85rem' }}>Không thể tải chỉ số shipper</p>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Dịch vụ giao nhận đang bảo trì hoặc quá tải.</p>
-                  </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {loadErrors.alerts ? (
+              <div style={{
+                padding: '2.5rem 1rem',
+                textAlign: 'center',
+                color: 'var(--error)',
+                border: '1px dashed rgba(239, 68, 68, 0.4)',
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: 'rgba(239, 68, 68, 0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <AlertTriangle size={30} color="var(--error)" style={{ opacity: 0.8 }} />
+                <div>
+                  <p style={{ margin: '0 0 0.25rem', fontWeight: 800, fontSize: '0.9rem' }}>Không thể tải cảnh báo tồn kho</p>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Lỗi kết nối với dịch vụ quản lý kho hàng.</p>
                 </div>
-              ) : shippersKpi.length === 0 && !loading ? (
-                <p style={{ margin: 0, color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>
-                  Chưa có dữ liệu hiệu suất giao hàng.
-                </p>
-              ) : shippersKpi.map((shipper) => (
-                <div key={shipper.shipperName} style={{
+              </div>
+            ) : inventoryAlerts.length === 0 && !loading ? (
+              <div style={{
+                padding: '2rem',
+                textAlign: 'center',
+                color: 'var(--text-muted)',
+                border: '1px dashed var(--border-color)',
+                borderRadius: 'var(--radius-lg)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <CheckCircle2 size={36} color="var(--success)" style={{ margin: '0 auto 0.5rem auto', opacity: 0.8 }} />
+                <p style={{ fontWeight: '700', fontSize: '0.9rem', margin: 0 }}>Kho hàng đạt trạng thái an toàn.</p>
+              </div>
+            ) : (
+              inventoryAlerts.map((alert) => (
+                <div key={alert.id} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
                   padding: '0.85rem',
                   borderRadius: 'var(--radius-lg)',
                   border: '1px solid var(--border-color)',
-                  background: 'var(--bg-light)'
+                  background: 'var(--bg-light)',
+                  gap: '0.75rem',
+                  flexWrap: 'wrap'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: '180px' }}>
+                    {alert.product?.imageUrl?.[0] ? (
+                      <img
+                        src={alert.product.imageUrl[0]}
+                        alt={alert.product.name}
+                        style={{ width: '38px', height: '38px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color)' }}
+                      />
+                    ) : (
+                      <div style={{ width: '38px', height: '38px', background: 'var(--border-color)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <ShoppingBag size={16} color="var(--text-muted)" />
+                      </div>
+                    )}
                     <div>
-                      <p style={{ fontWeight: '800', fontSize: '0.9rem', margin: 0 }}>{shipper.shipperName}</p>
-                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>SĐT: {shipper.shipperPhone}</p>
+                      <h4 style={{ fontSize: '0.85rem', fontWeight: '800', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {alert.product?.name || 'Sản phẩm lỗi'}
+                      </h4>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--error)', fontWeight: '700' }}>
+                        Tồn: {alert.availableQuantity} chiếc
+                      </span>
                     </div>
-                    <span style={{
-                      fontSize: '0.75rem',
-                      background: shipper.successRate >= 95 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                      color: shipper.successRate >= 95 ? 'var(--success)' : 'var(--warning)',
-                      padding: '0.15rem 0.5rem',
-                      borderRadius: '10px',
-                      fontWeight: '800'
-                    }}>
-                      Tỉ lệ: {Number(shipper.successRate || 0).toFixed(1)}%
-                    </span>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-                    <span>Đơn hỏng: {shipper.failedDeliveries}</span>
-                    <span>TB: <strong style={{ color: 'var(--text-main)' }}>{Number(shipper.averageDeliveryTimeHours || 0).toFixed(2)} giờ</strong></span>
-                  </div>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    icon={Plus}
+                    onClick={() => {
+                      setRestockItem(alert);
+                      setRestockAction('IMPORT');
+                      setRestockQuantity(50);
+                    }}
+                    style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
+                  >
+                    Nhập hàng
+                  </Button>
                 </div>
-              ))}
-            </div>
+              ))
+            )}
           </div>
-
+        </div>
       </div>
 
       {/* Floating AI Chatbot Button & Widget Panel (Rendered directly in body via Portal for perfect fixed viewport alignment) */}

@@ -406,10 +406,14 @@ const Orders = () => {
       accessorKey: 'paymentMethod',
       cell: (info) => {
         const paymentStatus = String(info.row.original.paymentStatus || '').toUpperCase();
+        const paymentMethod = String(info.row.original.paymentMethod || '').toUpperCase();
+        const orderStatus = String(info.row.original.status || '').toUpperCase();
+        
         const isPaid = paymentStatus === 'PAID' ||
           paymentStatus === 'SUCCESS' ||
           info.row.original.paymentId?.includes('SUCCESS') ||
-          info.row.original.status === 'COMPLETED';
+          info.row.original.status === 'COMPLETED' ||
+          (paymentMethod !== 'COD' && !['PENDING', 'PAYMENT_PENDING'].includes(orderStatus));
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
             <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{getPaymentMethodLabel(info.getValue())}</span>
@@ -837,10 +841,14 @@ const Orders = () => {
                       <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Trạng thái thanh toán:</span>
                       {(() => {
                         const paymentStatus = String(selectedOrder.paymentStatus || '').toUpperCase();
+                        const paymentMethod = String(selectedOrder.paymentMethod || '').toUpperCase();
+                        const orderStatus = String(selectedOrder.status || '').toUpperCase();
+                        
                         const isPaid = paymentStatus === 'PAID' ||
                           paymentStatus === 'SUCCESS' ||
                           selectedOrder.paymentId?.includes('SUCCESS') ||
-                          selectedOrder.status === 'COMPLETED';
+                          selectedOrder.status === 'COMPLETED' ||
+                          (paymentMethod !== 'COD' && !['PENDING', 'PAYMENT_PENDING'].includes(orderStatus));
                         return (
                           <p style={{
                             fontWeight: '800',
