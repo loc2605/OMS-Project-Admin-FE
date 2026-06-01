@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://192.168.10.159:8888',
+  baseURL: import.meta.env.VITE_API_URL || 'http://192.168.1.243:8888',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -10,13 +10,13 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('admin_token');
+    const token = sessionStorage.getItem('admin_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     // Try to get real logged-in user context
-    const userStr = localStorage.getItem('admin_user');
+    const userStr = sessionStorage.getItem('admin_user');
     let accountId = 'admin-account-id';
     let userRole = 'ADMIN';
 
@@ -67,8 +67,8 @@ apiClient.interceptors.response.use(
 
     if (status === 401 && !isLoginRequest) {
       // Unauthorized - clear token and redirect to login
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('admin_user');
+      sessionStorage.removeItem('admin_token');
+      sessionStorage.removeItem('admin_user');
       toast.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
       window.location.href = '/login';
       return Promise.reject(error);
@@ -80,15 +80,15 @@ apiClient.interceptors.response.use(
 
     if (status === 403) {
       const serverMessage = error.response?.data?.message || '';
-      const isBlocked = serverMessage.toLowerCase().includes('khoá') || 
-                        serverMessage.toLowerCase().includes('khóa') || 
-                        serverMessage.toLowerCase().includes('blocked') || 
-                        serverMessage.toLowerCase().includes('banned');
-      
+      const isBlocked = serverMessage.toLowerCase().includes('khoá') ||
+        serverMessage.toLowerCase().includes('khóa') ||
+        serverMessage.toLowerCase().includes('blocked') ||
+        serverMessage.toLowerCase().includes('banned');
+
       if (isBlocked) {
         toast.error(serverMessage || 'Tài khoản của bạn đã bị khoá trên hệ thống.');
-        localStorage.removeItem('admin_token');
-        localStorage.removeItem('admin_user');
+        sessionStorage.removeItem('admin_token');
+        sessionStorage.removeItem('admin_user');
         setTimeout(() => {
           window.location.href = '/login';
         }, 1500);

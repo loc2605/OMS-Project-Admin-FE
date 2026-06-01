@@ -23,7 +23,8 @@ const Sidebar = ({ isOpen, toggleSidebar, theme, toggleTheme }) => {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('admin_token');
+    sessionStorage.removeItem('admin_token');
+    sessionStorage.removeItem('admin_user');
     window.location.reload();
   };
 

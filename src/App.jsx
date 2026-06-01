@@ -10,7 +10,7 @@ import LoginPage from './pages/LoginPage';
 
 // Mock Protected Route
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('admin_token');
+  const token = sessionStorage.getItem('admin_token');
   if (!token) {
     return <Navigate to="/login" replace />;
   }
