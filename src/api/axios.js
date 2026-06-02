@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://192.168.1.243:8888',
+  baseURL: import.meta.env.VITE_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },

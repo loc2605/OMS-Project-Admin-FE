@@ -44,18 +44,18 @@ const LoginPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'var(--bg-dark)',
-      backgroundImage: 'radial-gradient(circle at 20% 30%, rgba(242, 108, 13, 0.1) 0%, transparent 40%), radial-gradient(circle at 80% 70%, rgba(242, 108, 13, 0.05) 0%, transparent 40%)'
+      background: '#d96302',
+      backgroundImage: 'radial-gradient(circle at 10% 20%, #f7a048 0%, transparent 50%), radial-gradient(circle at 90% 80%, #a03c00 0%, transparent 50%), linear-gradient(135deg, #e07616 0%, #b84a00 100%)'
     }}>
       <div style={{
         width: '100%',
         maxWidth: '400px',
         padding: '2.5rem',
-        background: 'rgba(45, 31, 22, 0.8)',
+        background: 'rgba(255, 255, 255, 0.94)',
         backdropFilter: 'blur(20px)',
         borderRadius: '1.5rem',
-        border: '1px solid rgba(255,255,255,0.1)',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        border: '1px solid rgba(255, 255, 255, 0.25)',
+        boxShadow: '0 30px 60px -15px rgba(160, 60, 0, 0.35), 0 15px 25px -10px rgba(0, 0, 0, 0.15)',
         textAlign: 'center'
       }}>
         <div style={{
@@ -73,8 +73,8 @@ const LoginPage = () => {
           <LogIn size={32} />
         </div>
 
-        <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '0.5rem', color: 'white' }}>OMS Admin</h1>
-        <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '2rem' }}>Chào mừng bạn quay lại hệ thống quản lý</p>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '0.5rem', color: '#181411' }}>OMS Admin</h1>
+        <p style={{ color: '#8a7260', marginBottom: '2rem' }}>Chào mừng bạn quay lại hệ thống quản lý</p>
 
         <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'left' }}>
           <Input
