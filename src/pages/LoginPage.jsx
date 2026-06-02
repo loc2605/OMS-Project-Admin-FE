@@ -93,9 +93,6 @@ const LoginPage = () => {
             error={errors.password?.message}
           />
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <a href="#" style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: '600' }}>Quên mật khẩu?</a>
-          </div>
 
           <Button
             type="submit"

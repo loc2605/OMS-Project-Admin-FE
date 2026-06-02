@@ -4,12 +4,12 @@ import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Select from '../../components/common/Select';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Package, 
-  Eye, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Package,
+  Eye,
   RefreshCw,
   X,
   Boxes,
@@ -45,6 +45,7 @@ const ProductList = () => {
   // Modals States
   const [isAddEditOpen, setIsAddEditOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null); // null if adding
+  const [submitting, setSubmitting] = useState(false);
   const [productForm, setProductForm] = useState({
     name: '',
     sku: '',
@@ -176,7 +177,9 @@ const ProductList = () => {
   // Handle Add/Edit Submit
   const handleProductSubmit = async (e) => {
     e.preventDefault();
-    
+    if (submitting) return;
+    setSubmitting(true);
+
     // Dynamic Category ID mapping from state categories list
     const matchedCategory = categories.find(cat => cat.name === productForm.categoryName);
     const categoryId = matchedCategory ? matchedCategory.id : 'f0000000-0000-0000-0000-000000000001';
@@ -187,7 +190,7 @@ const ProductList = () => {
     formData.append('price', Number(productForm.price));
     formData.append('description', productForm.description || '');
     formData.append('categoryId', categoryId);
-    
+
     if (productForm.imageUrl) {
       formData.append('imageUrl', productForm.imageUrl);
     }
@@ -212,7 +215,7 @@ const ProductList = () => {
       console.error(error);
       toast.success(editingProduct ? "Cập nhật sản phẩm thành công! (Simulated)" : "Tạo sản phẩm thành công! (Simulated)");
       setIsAddEditOpen(false);
-      
+
       // Update local state directly to show positive results immediately if API fails
       const payload = {
         ...productForm,
@@ -230,6 +233,8 @@ const ProductList = () => {
         };
         setProducts(prev => [simulatedNewProduct, ...prev]);
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -331,9 +336,9 @@ const ProductList = () => {
         return (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {url ? (
-              <img 
-                src={url} 
-                alt="Product thumbnail" 
+              <img
+                src={url}
+                alt="Product thumbnail"
                 style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-color)' }}
               />
             ) : (
@@ -377,15 +382,15 @@ const ProductList = () => {
         const qty = info.getValue() || 0;
         const color = qty <= 10 ? 'var(--error)' : 'var(--success)';
         return (
-          <span style={{ 
-            padding: '0.25rem 0.6rem', 
-            borderRadius: '20px', 
-            fontSize: '0.8rem', 
+          <span style={{
+            padding: '0.25rem 0.6rem',
+            borderRadius: '20px',
+            fontSize: '0.8rem',
             fontWeight: '800',
             background: `${color}15`,
             color: color
           }}>
-            {qty} chiếc {qty <= 10 && '⚠️'}
+            {qty} chiếc {qty <= 10}
           </span>
         );
       }
@@ -395,9 +400,9 @@ const ProductList = () => {
       id: 'actions',
       cell: (info) => (
         <div style={{ display: 'flex', gap: '0.35rem' }}>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             title="Điều chỉnh tồn kho"
             onClick={() => openStockModal(info.row.original)}
             style={{ padding: '0.4rem', color: 'var(--warning)' }}
@@ -405,9 +410,9 @@ const ProductList = () => {
             <Boxes size={16} />
           </Button>
 
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             title="Chỉnh sửa"
             onClick={() => openEditModal(info.row.original)}
             style={{ padding: '0.4rem', color: 'var(--primary)' }}
@@ -415,9 +420,9 @@ const ProductList = () => {
             <Edit size={16} />
           </Button>
 
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             title="Xóa"
             onClick={() => handleDeleteProduct(info.row.original.id)}
             style={{ padding: '0.4rem', color: 'var(--error)' }}
@@ -431,7 +436,7 @@ const ProductList = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      
+
       {/* Upper Action Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
@@ -460,8 +465,8 @@ const ProductList = () => {
         boxShadow: 'var(--shadow-subtle)'
       }}>
         <Search size={18} color="var(--text-muted)" />
-        <input 
-          type="text" 
+        <input
+          type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Tìm kiếm sản phẩm theo tên, SKU, danh mục phân loại..."
@@ -519,7 +524,7 @@ const ProductList = () => {
               zIndex: 1000,
               padding: '1rem'
             }}>
-              <motion.div 
+              <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
@@ -555,29 +560,29 @@ const ProductList = () => {
                   }}
                 >
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <Input 
+                    <Input
                       label="Tên sản phẩm"
                       type="text"
                       value={productForm.name}
-                      onChange={(e) => setProductForm({...productForm, name: e.target.value})}
+                      onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                       required
                     />
-                    <Input 
+                    <Input
                       label="Mã SKU sản phẩm"
                       type="text"
                       placeholder="ví dụ: SKU-MEN-001"
                       value={productForm.sku}
-                      onChange={(e) => setProductForm({...productForm, sku: e.target.value})}
+                      onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
                       required
                     />
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <Input 
+                    <Input
                       label="Giá bán (đồng)"
                       type="number"
                       value={productForm.price}
-                      onChange={(e) => setProductForm({...productForm, price: e.target.value})}
+                      onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
                       required
                     />
                     <Select
@@ -594,19 +599,19 @@ const ProductList = () => {
                     />
                   </div>
 
-                  <Input 
+                  <Input
                     label="Đường dẫn ảnh sản phẩm"
                     type="text"
                     placeholder="https://example.com/images/product.png"
                     value={productForm.imageUrl}
-                    onChange={(e) => setProductForm({...productForm, imageUrl: e.target.value})}
+                    onChange={(e) => setProductForm({ ...productForm, imageUrl: e.target.value })}
                   />
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                     <label style={{ fontSize: '0.875rem', fontWeight: '700' }}>Mô tả sản phẩm</label>
-                    <textarea 
+                    <textarea
                       value={productForm.description}
-                      onChange={(e) => setProductForm({...productForm, description: e.target.value})}
+                      onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                       rows="3"
                       style={{
                         width: '100%',
@@ -624,18 +629,19 @@ const ProductList = () => {
                   </div>
 
                   <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                    <Button 
-                      type="button" 
-                      variant="secondary" 
-                      onClick={() => setIsAddEditOpen(false)} 
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setIsAddEditOpen(false)}
                       style={{ flex: 1 }}
                     >
                       Hủy bỏ
                     </Button>
-                    
-                    <Button 
-                      type="submit" 
-                      variant="primary" 
+
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      isLoading={submitting}
                       style={{ flex: 1 }}
                     >
                       {editingProduct ? 'Cập nhật' : 'Tạo mới'}
@@ -664,7 +670,7 @@ const ProductList = () => {
               zIndex: 1000,
               padding: '1rem'
             }}>
-              <motion.div 
+              <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
