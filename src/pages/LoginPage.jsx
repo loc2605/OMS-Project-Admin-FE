@@ -39,47 +39,46 @@ const LoginPage = () => {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: '#d96302',
-      backgroundImage: 'radial-gradient(circle at 10% 20%, #f7a048 0%, transparent 50%), radial-gradient(circle at 90% 80%, #a03c00 0%, transparent 50%), linear-gradient(135deg, #e07616 0%, #b84a00 100%)'
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '400px',
-        padding: '2.5rem',
-        background: 'rgba(255, 255, 255, 0.94)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: '1.5rem',
-        border: '1px solid rgba(255, 255, 255, 0.25)',
-        boxShadow: '0 30px 60px -15px rgba(160, 60, 0, 0.35), 0 15px 25px -10px rgba(0, 0, 0, 0.15)',
-        textAlign: 'center'
-      }}>
-        <div style={{
-          width: '60px',
-          height: '60px',
-          background: 'var(--primary)',
-          borderRadius: '15px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 1.5rem',
-          color: 'white',
-          boxShadow: '0 10px 20px var(--primary-glow)'
-        }}>
-          <LogIn size={32} />
+    <div 
+      className="login-page-wrapper"
+      style={{
+        '--bg-card': 'rgba(255, 255, 255, 0.04)',
+        '--text-main': '#ffffff',
+        '--text-muted': 'rgba(255, 255, 255, 0.45)',
+        '--border-color': 'rgba(255, 255, 255, 0.08)',
+        '--radius-lg': '12px',
+        '--primary': '#f26c0d',
+        '--primary-hover': '#ea580c',
+        '--primary-glow': 'rgba(242, 108, 13, 0.3)',
+      }}
+    >
+      {/* Background Grids and Blobs */}
+      <div className="login-grid-overlay"></div>
+      <div className="login-blob login-blob-1"></div>
+      <div className="login-blob login-blob-2"></div>
+      <div className="login-blob login-blob-3"></div>
+
+      {/* Login Card */}
+      <div className="login-card">
+        {/* Logo Container */}
+        <div className="login-logo-container">
+          <LogIn size={32} style={{ strokeWidth: 2.25 }} />
         </div>
 
-        <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '0.5rem', color: '#181411' }}>OMS Admin</h1>
-        <p style={{ color: '#8a7260', marginBottom: '2rem' }}>Chào mừng bạn quay lại hệ thống quản lý</p>
+        <h1 className="glow-text-orange" style={{ fontSize: '1.85rem', fontWeight: '800', marginBottom: '0.25rem', letterSpacing: '-0.02em', textAlign: 'center' }}>
+          ShopModern
+        </h1>
+        <h2 style={{ fontSize: '0.95rem', fontWeight: '700', color: 'rgba(255, 255, 255, 0.95)', marginBottom: '0.5rem', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center' }}>
+          Hệ Thống Quản Trị
+        </h2>
+        <p style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.85rem', marginBottom: '2.25rem', fontWeight: '500', textAlign: 'center' }}>
+          Chào mừng quay trở lại. Hãy đăng nhập tài khoản của bạn.
+        </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'left' }}>
+        <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'left' }}>
           <Input
             label="Tên đăng nhập"
-            placeholder="Nhập tên đăng nhập..."
+            placeholder="Nhập tên đăng nhập của bạn"
             icon={User}
             {...register('username')}
             error={errors.username?.message}
@@ -87,31 +86,75 @@ const LoginPage = () => {
           <Input
             label="Mật khẩu"
             type="password"
-            placeholder="••••••••"
+            placeholder="Nhập mật khẩu của bạn"
             icon={Lock}
             {...register('password')}
             error={errors.password?.message}
           />
 
+          {/* Remember me */}
+          <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.25rem', marginBottom: '0.25rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.55)', userSelect: 'none' }}>
+              <input 
+                type="checkbox" 
+                style={{ 
+                  accentColor: '#f26c0d', 
+                  borderRadius: '4px', 
+                  width: '15px', 
+                  height: '15px',
+                  cursor: 'pointer',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                }} 
+              />
+              Ghi nhớ đăng nhập
+            </label>
+          </div>
 
           <Button
             type="submit"
             isLoading={isSubmitting}
+            className="login-btn"
             style={{
               width: '100%',
-              marginTop: '1.5rem',
-              padding: '1rem',
-              fontSize: '1.1rem',
+              marginTop: '1.25rem',
+              padding: '0.9rem',
+              fontSize: '1rem',
               fontWeight: '800',
-              borderRadius: '9999px',
-              backgroundColor: '#f26c0d',
-              color: '#ffffff',
-              boxShadow: '0 10px 25px -5px rgba(242, 108, 13, 0.4)'
+              borderRadius: '12px',
+              textTransform: 'uppercase'
             }}
           >
-            ĐĂNG NHẬP
+            Đăng nhập hệ thống
           </Button>
         </form>
+
+        {/* Security Footer Badge */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.5rem',
+          marginTop: '2.5rem',
+          paddingTop: '1.25rem',
+          borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+          color: 'rgba(255, 255, 255, 0.35)',
+          fontSize: '0.72rem',
+          fontWeight: '600',
+          letterSpacing: '0.08em'
+        }}>
+          <span style={{ 
+            display: 'inline-block', 
+            width: '6px', 
+            height: '6px', 
+            borderRadius: '50%', 
+            backgroundColor: '#22c55e', 
+            boxShadow: '0 0 10px #22c55e', 
+            marginRight: '2px',
+            animation: 'pulse 2s infinite'
+          }}></span>
+          BẢO MẬT SSL MÃ HÓA 256-BIT
+        </div>
       </div>
     </div>
   );
